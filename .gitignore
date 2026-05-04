@@ -1,0 +1,20 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+outputs/
+original_outputs/
+CODEX_TASK.md
+VALIDATION_TODO.md
+
+# Large/reference files outside the Mesa reimplementation package.
+*.zip
+*.pdf
+*.docx
+cultural-evolution-of-sustainable-behaviours-landscape-of-affordances-model_v1.2.0/
