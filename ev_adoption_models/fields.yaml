@@ -1,0 +1,53 @@
+field_categories:
+  - category: basic_info
+    fields:
+      - name: item_name
+        required: true
+      - name: model_family
+        required: true
+      - name: scope_definition
+        required: true
+      - name: representative_papers
+        required: true
+      - name: search_queries_used
+        required: true
+  - category: model_structure
+    fields:
+      - name: unit_of_analysis
+        required: true
+      - name: adoption_mechanism
+        required: true
+      - name: heterogeneity_representation
+        required: true
+      - name: social_influence_representation
+        required: true
+      - name: spatial_or_infrastructure_representation
+        required: true
+      - name: price_or_cost_representation
+        required: true
+      - name: policy_levers
+        required: true
+  - category: evidence_and_validation
+    fields:
+      - name: data_sources
+        required: true
+      - name: calibration_or_estimation
+        required: true
+      - name: validation_approach
+        required: true
+      - name: main_findings
+        required: true
+      - name: limitations
+        required: true
+  - category: relevance
+    fields:
+      - name: relevance_to_affordance_model
+        required: true
+      - name: transferable_mechanisms
+        required: true
+      - name: implementation_guidance
+        required: true
+      - name: key_gaps_for_research
+        required: true
+      - name: source_urls
+        required: true

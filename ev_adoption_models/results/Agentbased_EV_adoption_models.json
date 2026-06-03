@@ -1,0 +1,131 @@
+{
+  "item_name": "Agent-based EV adoption models",
+  "model_family": "Agent-based and microsimulation models of electric vehicle adoption, usually combining heterogeneous household agents, social diffusion, and bounded-rational or utility-based vehicle choice.",
+  "scope_definition": "This literature models EV adoption as an emergent process driven by heterogeneous households or consumers, repeated vehicle-purchase decisions, peer influence, learning or familiarity effects, charging access, and policy incentives. It includes threshold models, agent-based microsimulation, mixed-logit-plus-ABM hybrids, psychologically grounded ABMs, and policy scenario models for BEVs and PHEVs.",
+  "representative_papers": [
+    "Eppstein et al. (2011), An agent-based model to study market penetration of plug-in hybrid electric vehicles, Energy Policy, https://doi.org/10.1016/j.enpol.2011.04.007",
+    "McCoy and Lyons (2014), Consumer preferences and the influence of networks in electric vehicle diffusion: An agent-based microsimulation in Ireland, Energy Research & Social Science, https://doi.org/10.1016/j.erss.2014.07.008",
+    "Wolf et al. (2015), Changing minds about electric cars: An empirically grounded agent-based modeling approach, Technological Forecasting and Social Change, https://doi.org/10.1016/j.techfore.2014.10.010",
+    "Brown (2013), Catching the PHEVer: Simulating Electric Vehicle Diffusion with an Agent-Based Mixed Logit Model of Vehicle Choice, Journal of Artificial Societies and Social Simulation, https://doi.org/10.18564/jasss.2127",
+    "Kangur et al. (2017), An agent-based model for diffusion of electric vehicles, Journal of Environmental Psychology, https://doi.org/10.1016/j.jenvp.2017.01.002",
+    "Silvia and Krause (2016), Assessing the impact of policy interventions on the adoption of plug-in electric vehicles: An agent-based model, Energy Policy, https://doi.org/10.1016/j.enpol.2016.05.039",
+    "Gunther et al. (2020), Home charging and electric vehicle diffusion: Agent-based simulation using choice-based conjoint data, Transportation Research Part D, https://doi.org/10.1016/j.trd.2020.102475",
+    "Buchmann et al. (2021), Stimulating E-Mobility Diffusion in Germany (EMOSIM): An Agent-Based Simulation Approach, Energies, https://doi.org/10.3390/en14030656",
+    "Huang et al. (2021), Agent-based modelling for market acceptance of electric vehicles: Evidence from China, Sustainable Production and Consumption, https://doi.org/10.1016/j.spc.2021.04.007",
+    "Mehdizadeh et al. (2022), A systematic review of the agent-based modelling/simulation paradigm in mobility transition, Technological Forecasting and Social Change, https://doi.org/10.1016/j.techfore.2022.122011"
+  ],
+  "search_queries_used": [
+    "\"electric vehicle\" adoption agent-based model household social influence paper",
+    "\"agent-based\" electric vehicle adoption microsimulation households",
+    "\"vehicle choice\" bounded rationality electric vehicle agent-based model",
+    "\"social influence\" \"electric vehicle\" adoption model paper",
+    "STECCAR Consumat electric cars agent-based model paper",
+    "\"Consumer preferences and the influence of networks in electric vehicle diffusion\" abstract",
+    "\"Changing minds about electric cars\" agent-based modeling approach abstract",
+    "\"An agent-based model to study market penetration of plug-in hybrid electric vehicles\"",
+    "\"Home charging and electric vehicle diffusion: Agent-based simulation using choice-based conjoint data\"",
+    "\"Stimulating E-Mobility Diffusion in Germany (EMOSIM): An Agent-Based Simulation Approach\"",
+    "\"Agent-based modelling for market acceptance of electric vehicles: Evidence from China\"",
+    "\"A systematic review of the agent-based modelling/simulation paradigm in mobility transition\""
+  ],
+  "unit_of_analysis": "The dominant unit of analysis is the household or individual consumer making repeated vehicle choice or adoption decisions. Some models additionally represent vehicles, neighborhoods, social-network ties, charging stations, feeder areas, or regional populations.",
+  "adoption_mechanism": "Adoption is usually modeled as a discrete-time decision process in which agents compare EVs with conventional vehicles using thresholds, utility scores, mixed-logit choice, innovation affinity, or psychologically grounded preference updating. Social exposure, information, visible infrastructure, and prior adopters raise willingness to consider or purchase EVs; some models explicitly include learning, familiarity accumulation, or adaptive comfort with the technology.",
+  "heterogeneity_representation": "Heterogeneity is represented through income, household structure, education, environmental attitudes, travel demand, vehicle ownership, dwelling type, charging access, geographic location, innovation affinity, social class, and sometimes detailed daily trip behavior. Better grounded models use survey microdata, conjoint data, travel diaries, census controls, or synthetic populations calibrated to local demographics.",
+  "social_influence_representation": "Social influence is central in this literature and is usually represented by peer effects in social networks, homophily, threshold contagion, imitation, neighborhood visibility, word of mouth, media exposure, or social norms. Several models distinguish between direct peer exposure, general market visibility, and informational or attitudinal influence.",
+  "spatial_or_infrastructure_representation": "Spatial and infrastructure detail varies substantially [uncertain]. Many models include explicit neighborhoods, zip codes, urban communities, or regional populations, and several incorporate home charging, public charging density, or local grid impacts; other models keep space or infrastructure highly stylized and treat charging access through coarse attributes rather than explicit networks.",
+  "price_or_cost_representation": "Most models include upfront vehicle price, purchase subsidy or rebate, fuel and electricity prices, operating cost savings, battery range, charging time, and sometimes taxes or total-cost-of-ownership style comparisons. More advanced models also test carbon or fuel taxes, subsidy phase-outs, and differences between BEVs and PHEVs.",
+  "policy_levers": [
+    "Purchase subsidies, rebates, and feebates",
+    "Fuel or carbon taxes",
+    "Public charging infrastructure expansion",
+    "Home charging support or visibility of charging points",
+    "Information campaigns and familiarity-building measures",
+    "Technology-specific support for BEVs versus PHEVs",
+    "ICE sales bans or phase-out style constraints",
+    "Combined long-duration policy packages rather than one-off incentives"
+  ],
+  "data_sources": [
+    "Household travel surveys and stated or revealed preference surveys",
+    "Choice-based conjoint data on EV attributes and charging",
+    "National Household Travel Survey style microdata",
+    "Smart-meter trial data and electricity network data",
+    "Travel diaries and vehicle fleet composition data",
+    "Census and small-area demographic data for synthetic populations",
+    "Vehicle price, fuel price, electricity price, and technology specification data",
+    "Charging infrastructure and spatial location data",
+    "Historical registration, adoption, or market-share data for calibration checks"
+  ],
+  "calibration_or_estimation": "Calibration ranges from rigorous empirical estimation to heuristic tuning [uncertain]. Stronger studies estimate mixed-logit or conjoint-based parameters, calibrate synthetic populations to census totals, fit psychological or neural-network models to surveys, or reproduce historical fleet evolution. Weaker studies rely on assumed thresholds, literature-based parameter values, or sensitivity analysis with limited empirical anchoring.",
+  "validation_approach": "Validation quality is uneven [uncertain]. Better studies compare simulated adoption, fleet composition, charging demand, or spatial clustering against historical observations, survey distributions, or real charging profiles. However, the 2022 systematic review reports that many mobility-transition ABMs still lack formal validation, so face validation and sensitivity analysis remain common.",
+  "main_findings": [
+    "Peer effects matter even when aggregate adoption is low; mild social influence can produce strong local clusters of EV adopters.",
+    "Household heterogeneity strongly affects adoption timing, policy responsiveness, and spatial concentration.",
+    "Charging access, especially home charging or visible local infrastructure, is a major adoption enabler.",
+    "Policy packages that combine subsidies, infrastructure, and information or familiarity measures generally outperform single instruments.",
+    "Long-lasting and credible policies are usually more effective than short-term or narrowly targeted incentives.",
+    "Several models find that familiarity, comfort with the technology, and social visibility can be as important as purely financial variables.",
+    "For BEV-focused transitions, policies that favor full battery EVs more explicitly may accelerate emission reductions relative to mixed support for hybrids."
+  ],
+  "limitations": [
+    "Model validation is often weak or incomplete.",
+    "Many studies are calibrated to Western or high-income settings, limiting transferability.",
+    "Social networks are frequently stylized rather than observed empirically.",
+    "Learning is usually simplified to threshold updating, familiarity, or attitude change rather than richer adaptive behavior.",
+    "Supply-side dynamics, manufacturer strategy, and second-hand vehicle markets are often exogenous or omitted.",
+    "Charging infrastructure is sometimes represented only through coarse accessibility indicators rather than explicit capacity or queue dynamics.",
+    "Budget constraints, credit constraints, and within-household negotiation are usually simplified."
+  ],
+  "relevance_to_affordance_model": "This literature is highly relevant because it operationalizes adoption as a function of what households can practically do, perceive, and learn in context: afford EV purchase, charge at home or nearby, observe peers, interpret policy signals, and adapt preferences over time. It is especially useful for an affordance model that wants to connect household constraints and capabilities to dynamic social diffusion.",
+  "transferable_mechanisms": [
+    "Willingness-to-consider or comfort thresholds before EVs enter the effective choice set",
+    "Mixed-logit or utility-based vehicle choice layered on top of social diffusion",
+    "Household innovation affinity or environmental orientation as latent heterogeneity",
+    "Peer exposure through homophilous social networks or neighborhood visibility",
+    "Home-charging access as a key affordance variable rather than just a background control",
+    "Policy modules that separately affect price, information, infrastructure, and social visibility",
+    "Familiarity or knowledge accumulation as a bridge between bounded rationality and adoption timing",
+    "Spatial clustering metrics to connect adoption diffusion with infrastructure and grid consequences"
+  ],
+  "implementation_guidance": [
+    "Start with a synthetic household population calibrated to local census or travel-survey marginals.",
+    "Separate EV consideration from final purchase choice; many successful models first determine whether EVs enter the agent's feasible choice set.",
+    "Represent at least four mechanism blocks: household heterogeneity, vehicle attributes and costs, charging affordances, and social exposure.",
+    "Use a social network that reflects homophily or neighborhood structure rather than fully random mixing.",
+    "Model home charging explicitly, because it repeatedly appears as a decisive adoption affordance.",
+    "Keep policy levers modular so subsidies, infrastructure, information, and fuel-price changes can be tested independently and jointly.",
+    "Use empirical estimation where possible for choice parameters; otherwise document assumed thresholds and stress-test them with sensitivity analysis.",
+    "Validate both aggregate adoption trajectories and spatial or subgroup patterns, not just total EV counts.",
+    "If bounded rationality is important, use satisficing, limited consideration sets, or familiarity thresholds instead of pure full-information optimization."
+  ],
+  "key_gaps_for_research": [
+    "Endogenous supply-side response, model availability, waiting times, and manufacturer pricing are still under-modeled.",
+    "Used-car markets and vehicle replacement chains are rarely integrated even though they shape mass-market adoption.",
+    "Observed social networks and causal peer identification remain weak relative to stylized network assumptions.",
+    "Joint adoption of EVs with rooftop PV, batteries, or heat pumps is still limited in the core EV ABM literature.",
+    "Household financing constraints, rent-versus-own tenure effects, and distributional affordability need richer treatment.",
+    "Non-Western, lower-income, and institutionally diverse contexts remain underrepresented.",
+    "Learning processes could be modeled more realistically through experience, experimentation, and misinformation correction.",
+    "Infrastructure equity, queueing, and local service quality should be linked more tightly to adoption behavior."
+  ],
+  "source_urls": [
+    "https://doi.org/10.1016/j.enpol.2011.04.007",
+    "https://doi.org/10.1016/j.erss.2014.07.008",
+    "https://doi.org/10.1016/j.techfore.2014.10.010",
+    "https://doi.org/10.18564/jasss.2127",
+    "https://doi.org/10.1016/j.jenvp.2017.01.002",
+    "https://doi.org/10.1016/j.enpol.2016.05.039",
+    "https://doi.org/10.1016/j.trd.2020.102475",
+    "https://doi.org/10.3390/en14030656",
+    "https://doi.org/10.1016/j.spc.2021.04.007",
+    "https://doi.org/10.1016/j.techfore.2022.122011",
+    "https://www.jasss.org/16/2/5.html",
+    "https://www.mdpi.com/1996-1073/14/3/656",
+    "https://www.esri.ie/publications/consumer-preferences-and-the-influence-of-networks-in-electric-vehicle-diffusion-an-agent-based-microsimulation-in-ireland",
+    "https://arxiv.org/abs/1405.6230"
+  ],
+  "uncertain": [
+    "spatial_or_infrastructure_representation",
+    "calibration_or_estimation",
+    "validation_approach"
+  ]
+}

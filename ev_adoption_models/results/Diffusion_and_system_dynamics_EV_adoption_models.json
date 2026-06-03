@@ -1,0 +1,288 @@
+{
+  "item_name": "Diffusion and system dynamics EV adoption models",
+  "model_family": "Aggregate diffusion and transition models for EV uptake, including Bass diffusion, generalized Bass, system dynamics, stock-flow fleet turnover, and market-transition models with endogenous feedbacks.",
+  "scope_definition": "Literature that models electric vehicle or plug-in electric vehicle uptake at aggregate market level using diffusion curves, system dynamics, stock-flow structures, or market-transition frameworks. The core scope is country-, region-, or multi-market adoption dynamics and policy analysis rather than purely household-level discrete-choice or agent-based models, though hybrid aggregate models are included when they retain macro diffusion structure.",
+  "representative_papers": [
+    {
+      "title": "Transition Challenges for Alternative Fuel Vehicle and Transportation Systems",
+      "authors": [
+        "Jeroen Struben",
+        "John D. Sterman"
+      ],
+      "year": 2008,
+      "model_type": "System dynamics transition model",
+      "contribution": "Seminal feedback-based diffusion model showing threshold effects, coevolution of vehicles and complementary infrastructure, and the need for sustained support before adoption becomes self-sustaining.",
+      "url": "https://doi.org/10.1068/b33022t"
+    },
+    {
+      "title": "Factors affecting future demand for electric vehicles: A model based study",
+      "authors": [
+        "Simon Shepherd",
+        "Peter Bonsall",
+        "Gillian Harrison"
+      ],
+      "year": 2012,
+      "model_type": "Fleet turnover plus social diffusion model",
+      "contribution": "Combines fleet turnover, car purchase choice, and technology/social diffusion to test subsidies, marketing, vehicle attributes, and word of mouth through 2050.",
+      "url": "https://doi.org/10.1016/j.tranpol.2011.12.006"
+    },
+    {
+      "title": "Modified Bass Model with External Factors for Electric Vehicle Adoption",
+      "authors": [
+        "Yimin Liu",
+        "Erica Klampfl",
+        "Michael A. Tamor"
+      ],
+      "year": 2013,
+      "model_type": "Modified Bass diffusion model",
+      "contribution": "Extends Bass diffusion with EV-specific external factors such as fuel cost differences and policy, and validates the approach against HEV sales data.",
+      "url": "https://doi.org/10.4271/2013-01-0505"
+    },
+    {
+      "title": "The Future Adoption and Benefit of Electric Vehicles: A Parametric Assessment",
+      "authors": [
+        "Garrett E. Barter",
+        "David Reichmuth",
+        "Todd H. West",
+        "Dawn K. Manley"
+      ],
+      "year": 2013,
+      "model_type": "System dynamics supply-demand model",
+      "contribution": "Uses a system dynamics model of fleet, fuels, and primary energy interactions to assess EV adoption and GHG outcomes under different technology and policy assumptions.",
+      "url": "https://doi.org/10.4271/2013-01-0502"
+    },
+    {
+      "title": "A system dynamics based market agent model simulating future powertrain technology transition: Scenarios in the EU light duty vehicle road transport sector",
+      "authors": [
+        "Guzay Pasaoglu",
+        "Gillian Harrison",
+        "Lee Jones",
+        "Andrew Hill",
+        "Alexandre Beaudet",
+        "Christian Thiel"
+      ],
+      "year": 2016,
+      "model_type": "System dynamics market-transition model",
+      "contribution": "Large-scale EU market-transition model with interacting users, manufacturers, infrastructure providers, and authorities across multiple countries and powertrains.",
+      "url": "https://doi.org/10.1016/j.techfore.2015.11.028"
+    },
+    {
+      "title": "What drives the market for plug-in electric vehicles? - A review of international PEV market diffusion models",
+      "authors": [
+        "Till Gnann",
+        "Thomas S. Stephens",
+        "Zhenhong Lin",
+        "Patrick Plotz",
+        "Changzheng Liu",
+        "Jens Brokate"
+      ],
+      "year": 2018,
+      "model_type": "Comparative review of 40 PEV diffusion models",
+      "contribution": "Synthesizes the aggregate diffusion modeling field and highlights repeated drivers such as purchase price, operating cost, charging infrastructure, and policy design.",
+      "url": "https://doi.org/10.1016/j.rser.2018.03.055"
+    },
+    {
+      "title": "Exploring the development of electric vehicles under policy incentives: A scenario-based system dynamics model",
+      "authors": [
+        "Dunnan Liu",
+        "Bowen Xiao"
+      ],
+      "year": 2018,
+      "model_type": "Scenario-based system dynamics model",
+      "contribution": "Explores how alternative policy packages shape EV diffusion in China and reinforces the importance of combined demand- and supply-side incentives.",
+      "url": "https://doi.org/10.1016/j.enpol.2018.04.073"
+    },
+    {
+      "title": "A dynamic model of electric vehicle adoption: The role of social commerce in new transportation",
+      "authors": [
+        "Bo Feng",
+        "Qiwen Ye",
+        "Brian J. Collins"
+      ],
+      "year": 2019,
+      "model_type": "System dynamics model with fuzzy logic",
+      "contribution": "Adds vague consumer perceptions and social commerce effects to EV adoption dynamics, emphasizing timing and awareness channels.",
+      "url": "https://doi.org/10.1016/j.im.2018.05.004"
+    },
+    {
+      "title": "The Effect of Reducing Electric Car Purchase Incentives in the European Union",
+      "authors": [
+        "Jonatan J. Gomez Vilchez",
+        "Christian Thiel"
+      ],
+      "year": 2019,
+      "model_type": "PTTMAM policy scenario analysis",
+      "contribution": "Uses the EU Powertrain Technology Transition Market Agent Model to quantify how reducing or removing purchase incentives affects BEV and PHEV uptake.",
+      "url": "https://doi.org/10.3390/wevj10040064"
+    },
+    {
+      "title": "Interlinking major markets to explore electric car uptake",
+      "authors": [
+        "Jonatan J. Gomez Vilchez",
+        "Patrick Jochem",
+        "Wolf Fichtner"
+      ],
+      "year": 2020,
+      "model_type": "Multi-country system dynamics model",
+      "contribution": "Shows that coordinated policy packages across major markets can create stronger EV uptake than isolated national policies.",
+      "url": "https://doi.org/10.1016/j.enpol.2020.111588"
+    },
+    {
+      "title": "Toward the Dynamic Modeling of Transition Problems: The Case of Electric Mobility",
+      "authors": [
+        "Mohammadreza Zolfagharian",
+        "Bob Walrave",
+        "A. Georges L. Romme",
+        "Rob Raven"
+      ],
+      "year": 2021,
+      "model_type": "Entity-based system dynamics model",
+      "contribution": "Links macro innovation-system dynamics with micro acceptance variables, market segmentation, subsidies, resource mobilization, and charging points.",
+      "url": "https://doi.org/10.3390/su13010038"
+    },
+    {
+      "title": "Diffusion and benefits evaluation of electric vehicles under policy interventions based on a multiagent system dynamics model",
+      "authors": [
+        "Jingjing Li",
+        "Victor Nian",
+        "Jianling Jiao"
+      ],
+      "year": 2022,
+      "model_type": "Multiagent system dynamics model",
+      "contribution": "Represents interactions among government, consumers, manufacturers, and charging operators to compare the effects of different Chinese policy tools.",
+      "url": "https://doi.org/10.1016/j.apenergy.2021.118430"
+    },
+    {
+      "title": "Comparative assessment and selection of electric vehicle diffusion models: A global outlook",
+      "authors": [
+        "Rajeev Ranjan Kumar",
+        "Pritha Guha",
+        "Abhishek Chakraborty"
+      ],
+      "year": 2022,
+      "model_type": "Cross-country comparative diffusion modeling",
+      "contribution": "Compares Gompertz, Logistic, Bass, and Generalized Bass models across 20 countries and shows model fit differs materially by country context.",
+      "url": "https://doi.org/10.1016/j.energy.2021.121932"
+    },
+    {
+      "title": "Designing government subsidy schemes to promote the electric vehicle industry: A system dynamics model perspective",
+      "authors": [
+        "Yina Li",
+        "Chenchen Liang",
+        "Fei Ye",
+        "Xiande Zhao"
+      ],
+      "year": 2023,
+      "model_type": "System dynamics subsidy design model",
+      "contribution": "Tests acquisition versus R&D subsidies and static versus dynamic schedules, finding different short- and medium-run effectiveness patterns.",
+      "url": "https://doi.org/10.1016/j.tra.2022.11.018"
+    }
+  ],
+  "search_queries_used": [
+    "electric vehicle adoption Bass diffusion model paper",
+    "electric vehicle adoption system dynamics model paper",
+    "plug-in electric vehicle stock flow diffusion model paper",
+    "electric vehicle market transition model adoption paper",
+    "\"A dynamic model of electric vehicle adoption: The role of social commerce in new transportation\"",
+    "\"Diffusion and benefits evaluation of electric vehicles under policy interventions based on a multiagent system dynamics model\"",
+    "\"system dynamics based market agent model\" powertrain technology transition EU light duty vehicle road transport sector",
+    "\"Transition Challenges for Alternative Fuel Vehicle and Transportation Systems\" electric vehicles",
+    "\"Factors affecting future demand for electric vehicles: A model based study\"",
+    "\"Exploring the development of electric vehicles under policy incentives: A scenario-based system dynamics model\""
+  ],
+  "unit_of_analysis": "Usually country-, region-, or multi-country annual EV sales, market share, cumulative vehicle stock, and fleet turnover. Some models operate at the level of conceptual stakeholder groups such as users, manufacturers, infrastructure providers, charging operators, and authorities rather than individual households.",
+  "adoption_mechanism": "Adoption is modeled as a coupled feedback process. Core mechanisms are Bass-style innovation and imitation, awareness and word of mouth, willingness to consider, vehicle utility or total cost of ownership, technology learning, fleet replacement, infrastructure buildout, and policy-induced changes in costs or legitimacy. System dynamics models usually formalize these as reinforcing and balancing loops between adopters, costs, infrastructure, expectations, and policy support.",
+  "heterogeneity_representation": "Heterogeneity is usually represented in coarse aggregate form rather than at full micro level. Common forms are country clusters, vehicle segments, geography (urban versus non-urban), user types (private, fleet, public), and occasionally income, age, or urbanization classes. Rich household-level heterogeneity is generally weaker than in agent-based or discrete-choice models.",
+  "social_influence_representation": "Social influence is usually explicit but aggregated. Typical implementations are the Bass imitation coefficient q, word-of-mouth feedback, awareness stocks, legitimacy, popularity, or willingness-to-consider variables. Only a minority of models represent explicit network structure; most proxy peer effects through average market visibility and cumulative adoption.",
+  "spatial_or_infrastructure_representation": "Pure Bass models often have little or no spatial detail. System dynamics and market-transition models usually add charging or fueling infrastructure stocks, urban versus non-urban distinctions, country-by-country segmentation, or linked major markets. Infrastructure is commonly endogenous, but fine-grained spatial accessibility and queue effects are usually simplified.",
+  "price_or_cost_representation": "Nearly all models include vehicle purchase price or total cost of ownership. Common cost channels are battery learning curves, fuel and electricity prices, maintenance and operating cost, depreciation, taxes, subsidies, and policy-driven price reductions. Several market-transition models also separate a temporary demand kick from more persistent financial attractiveness effects.",
+  "policy_levers": [
+    "Purchase subsidies or rebates for BEVs and PHEVs",
+    "Research and development subsidies for manufacturers",
+    "Charging infrastructure or charging pile subsidies",
+    "Registration, circulation, or tax incentives",
+    "License plate restrictions or preferential access rules",
+    "Fuel and electricity price assumptions or carbon pricing",
+    "Marketing, legitimacy, and resource mobilization support",
+    "Vehicle emissions targets and broader regulatory pressure",
+    "Coordinated policy packages across countries or regions"
+  ],
+  "data_sources": [
+    "International Energy Agency EV sales and stock datasets",
+    "European Alternative Fuels Observatory registrations and infrastructure data",
+    "National vehicle registration and market statistics",
+    "Official policy documents on subsidies, taxes, and restrictions",
+    "Battery cost trajectories and vehicle technology assumptions from public reports",
+    "Fuel and electricity price series",
+    "Consumer segmentation assumptions from surveys and prior literature",
+    "Illustrative or theory-based parameter assumptions where empirical data are sparse"
+  ],
+  "calibration_or_estimation": "Bass-family studies usually estimate parameters with nonlinear least squares or related error-minimizing methods on historical EV or analogous vehicle sales, often comparing MAPE or MAD across models. System dynamics studies typically calibrate selected parameters to official sales, stock, cost, and policy data, then use scenario analysis and sensitivity tests. Some theory-guided SD models are only partially calibrated and are presented mainly as explanatory or exploratory models because the early EV market offers limited historical data.",
+  "validation_approach": "The dominant validation approaches are historical fit to sales or stock trajectories, replication of known policy episodes, sensitivity analysis, and structural or face validation. PTTMAM-style studies test whether observed national policy outcomes can be approximately reproduced. Several SD papers explicitly acknowledge that validation is partial or illustrative rather than strong out-of-sample forecasting validation.",
+  "main_findings": [
+    "EV diffusion in aggregate models is strongly path-dependent and often exhibits threshold behavior: adoption can stall below a critical mass and accelerate once awareness, infrastructure, and cost improvements reinforce one another.",
+    "Short-run demand subsidies generally raise EV uptake, but they are not always the most efficient long-run tool; several SD studies find that R&D or technology-maturity support can produce stronger medium-run penetration per unit of public spending.",
+    "Charging infrastructure is a recurrent high-leverage variable. Models that endogenize charging buildout usually find higher uptake and stronger policy synergies than models relying on price incentives alone.",
+    "Word of mouth, awareness, legitimacy, and other social-diffusion channels matter materially in early market formation and can shift the timing of takeoff.",
+    "Cross-country differences are large enough that a single diffusion functional form or a single Bass parameterization is rarely best everywhere; country context and policy mix matter.",
+    "Policy packages outperform isolated measures in many simulations, especially when vehicle cost reduction, infrastructure expansion, and regulatory support move together."
+  ],
+  "limitations": [
+    "Standard Bass models are parsimonious but omit or simplify fleet turnover, endogenous charging infrastructure, supply constraints, and time-varying policy persistence unless explicitly extended.",
+    "Many system dynamics models rely on short early-market time series, stylized assumptions, or partial calibration, so long-horizon forecasts are highly sensitive to parameter choices.",
+    "Aggregate models often hide household, neighborhood, housing, and charging-access heterogeneity that can shape adoption in real markets.",
+    "Explicit network contagion, second-hand vehicle markets, OEM model availability, and electricity-system feedbacks are frequently weakly modeled or treated as exogenous.",
+    "Validation is often limited to in-sample fit, sensitivity analysis, or structural plausibility instead of rigorous out-of-sample forecast testing."
+  ],
+  "relevance_to_affordance_model": "High. This literature is directly useful for an affordance-oriented EV adoption model because it formalizes how adoption depends on whether EVs become usable, visible, legitimate, and economically attractive within a changing socio-technical environment. The strongest transferable idea is that affordability, charging access, awareness, and policy support are not independent attributes but mutually reinforcing conditions that alter what the technology affords to potential adopters over time.",
+  "transferable_mechanisms": [
+    "Awareness or legitimacy as a stock that accumulates through media, marketing, and user visibility",
+    "Imitation or word-of-mouth feedback from cumulative adopters",
+    "Willingness-to-consider as an intermediate state before purchase",
+    "Charging availability and infrastructure coverage as enabling constraints",
+    "Total cost of ownership and relative financial attractiveness",
+    "Technology learning curves that lower battery or vehicle cost as adoption grows",
+    "Fleet turnover stock-flow structure separating sales from installed stock",
+    "Policy schedules with start, ramp-down, or sunset effects",
+    "Segment-specific sensitivity to income, geography, or user type",
+    "Multi-market spillovers through battery cost, scale, and coordinated policy"
+  ],
+  "implementation_guidance": [
+    "Start with a stock-flow fleet model that separately tracks ICE vehicles, EV stock, new sales, and retirements; this avoids confusing annual adoption flow with installed stock.",
+    "If the goal is a compact forecasting model, use Bass or generalized Bass as the adoption core and add time-varying covariates for cost, infrastructure, and policy.",
+    "If the goal is policy design or transition analysis, use a system dynamics structure with explicit modules for consumers, manufacturers, infrastructure, and government so feedbacks are endogenous.",
+    "Represent social influence with a transparent aggregate term such as imitation, awareness, or willingness-to-consider rather than burying it inside a black-box demand function.",
+    "Calibrate against annual registration or stock data plus charging infrastructure and price series, and report sensitivity bands because early-stage EV diffusion is parameter-fragile.",
+    "Separate temporary purchase incentives from structural drivers such as technology learning, infrastructure growth, and consumer awareness; otherwise policy effects are easy to overstate.",
+    "Test policy portfolios, not just single levers, because multiple papers find super-additive effects from combining subsidies, infrastructure, and broader transition support."
+  ],
+  "key_gaps_for_research": [
+    "Better coupling of aggregate EV diffusion with electricity-system capacity, charging congestion, and power-market feedbacks",
+    "Explicit treatment of the used EV market, resale values, and second-hand diffusion",
+    "Stronger empirical calibration and out-of-sample validation beyond the early adopter phase and beyond a few leading countries",
+    "Aggregate models that preserve parsimony while representing affordability constraints, housing type, and private charging access more realistically",
+    "Endogenous supply-side constraints such as model availability, battery supply chains, and OEM strategic behavior",
+    "More realistic treatment of policy persistence, policy credibility, and phase-out dynamics",
+    "Systematic uncertainty quantification and forecast comparison across alternative diffusion structures",
+    "Closer integration of behavioral adoption mechanisms with stock-flow market-transition frameworks"
+  ],
+  "source_urls": [
+    "https://doi.org/10.1068/b33022t",
+    "https://doi.org/10.1016/j.tranpol.2011.12.006",
+    "https://doi.org/10.4271/2013-01-0505",
+    "https://doi.org/10.4271/2013-01-0502",
+    "https://doi.org/10.1016/j.techfore.2015.11.028",
+    "https://doi.org/10.1016/j.rser.2018.03.055",
+    "https://doi.org/10.1016/j.enpol.2018.04.073",
+    "https://doi.org/10.1016/j.im.2018.05.004",
+    "https://doi.org/10.3390/wevj10040064",
+    "https://doi.org/10.1016/j.enpol.2020.111588",
+    "https://doi.org/10.3390/su13010038",
+    "https://doi.org/10.1016/j.apenergy.2021.118430",
+    "https://doi.org/10.1016/j.energy.2021.121932",
+    "https://doi.org/10.1016/j.tra.2022.11.018",
+    "https://mitmgmtfaculty.mit.edu/jsterman/transitionchallenges-2/",
+    "https://www.sciencedirect.com/science/article/pii/S1364032118301497"
+  ],
+  "uncertain": []
+}

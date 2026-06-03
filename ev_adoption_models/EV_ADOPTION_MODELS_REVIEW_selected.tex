@@ -1,0 +1,277 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\documentclass[
+]{article}
+\usepackage{xcolor}
+\usepackage{amsmath,amssymb}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math} % this also loads fontspec
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+\usepackage{lmodern}
+\ifPDFTeX\else
+  % xetex/luatex font selection
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{color}
+\usepackage{fancyvrb}
+\newcommand{\VerbBar}{|}
+\newcommand{\VERB}{\Verb[commandchars=\\\{\}]}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\}}
+% Add ',fontsize=\small' for more characters per line
+\newenvironment{Shaded}{}{}
+\newcommand{\AlertTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\AnnotationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\AttributeTok}[1]{\textcolor[rgb]{0.49,0.56,0.16}{#1}}
+\newcommand{\BaseNTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{#1}}
+\newcommand{\CharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textit{#1}}}
+\newcommand{\CommentVarTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\ConstantTok}[1]{\textcolor[rgb]{0.53,0.00,0.00}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\DataTypeTok}[1]{\textcolor[rgb]{0.56,0.13,0.00}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\DocumentationTok}[1]{\textcolor[rgb]{0.73,0.13,0.13}{\textit{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor[rgb]{1.00,0.00,0.00}{\textbf{#1}}}
+\newcommand{\ExtensionTok}[1]{#1}
+\newcommand{\FloatTok}[1]{\textcolor[rgb]{0.25,0.63,0.44}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor[rgb]{0.02,0.16,0.49}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor[rgb]{0.00,0.50,0.00}{\textbf{#1}}}
+\newcommand{\InformationTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\newcommand{\KeywordTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{\textbf{#1}}}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\OperatorTok}[1]{\textcolor[rgb]{0.40,0.40,0.40}{#1}}
+\newcommand{\OtherTok}[1]{\textcolor[rgb]{0.00,0.44,0.13}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor[rgb]{0.74,0.48,0.00}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\SpecialCharTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\SpecialStringTok}[1]{\textcolor[rgb]{0.73,0.40,0.53}{#1}}
+\newcommand{\StringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor[rgb]{0.10,0.09,0.49}{#1}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor[rgb]{0.25,0.44,0.63}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor[rgb]{0.38,0.63,0.69}{\textbf{\textit{#1}}}}
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\usepackage{bookmark}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same}
+\hypersetup{
+  pdftitle={EV Adoption Model Literature Review},
+  hidelinks,
+  pdfcreator={LaTeX via pandoc}}
+
+\title{EV Adoption Model Literature Review}
+\author{}
+\date{}
+
+\begin{document}
+\maketitle
+
+\subsection{High-Level Findings}\label{high-level-findings}
+
+EV adoption is usually not modeled as a single consumer-choice event.
+The stronger models combine several mechanisms: household heterogeneity,
+price and total-cost barriers, charging access, social visibility,
+policy incentives, technology learning, and vehicle replacement timing.
+For an affordance model, the most transferable idea is to treat EV
+adoption as the result of both objective action opportunities and
+perceived feasibility.
+
+The closest analogue to the current affordance model is the agent-based
+EV adoption literature. Studies such as Eppstein et al.~on PHEV market
+penetration, McCoy and Lyons on Irish microsimulation, Brown's
+mixed-logit ABM, and Kangur et al.'s psychologically grounded ABM all
+represent heterogeneous agents who update or act under social and
+contextual influence. Useful sources include
+\href{https://doi.org/10.1016/j.enpol.2011.04.007}{Eppstein et
+al.~2011}, \href{https://doi.org/10.1016/j.erss.2014.07.008}{McCoy and
+Lyons 2014}, \href{https://doi.org/10.18564/jasss.2127}{Brown 2013}, and
+\href{https://doi.org/10.1016/j.jenvp.2017.01.002}{Kangur et al.~2017}.
+
+Aggregate diffusion and system dynamics models are useful for feedback
+structure, not micro-behavioral detail. They emphasize reinforcing loops
+among adoption, infrastructure, cost reductions, legitimacy, and policy
+support. Representative sources include
+\href{https://doi.org/10.1068/b33022t}{Struben and Sterman 2008},
+\href{https://doi.org/10.1016/j.tranpol.2011.12.006}{Shepherd et
+al.~2012},
+\href{https://doi.org/10.1016/j.techfore.2015.11.028}{Pasaoglu et
+al.~2016}, and the review by
+\href{https://doi.org/10.1016/j.rser.2018.03.055}{Gnann et al.~2018}.
+
+Discrete choice and hybrid choice models provide the strongest empirical
+foundation for purchase probabilities. They estimate willingness to pay
+for price, range, charging time, fuel/electricity cost, infrastructure,
+incentives, and latent attitudes. Representative work includes
+Brownstone, Bunch, and Train on joint RP/SP mixed logit, Hidrue et
+al.~on willingness to pay, Glerum et al. on hybrid choice, Helveston et
+al.~on U.S. and China preferences, and Axsen et al.~on lifestyle
+heterogeneity. Relevant links include
+\href{https://www.sciencedirect.com/science/article/pii/S0928765511000200}{Hidrue
+et al.~2011}, \href{https://doi.org/10.1287/trsc.2013.0487}{Glerum et
+al.~2014}, and
+\href{https://www.cmu.edu/me/ddl/publications/2015-TRA-Helveston-etal-EVs-in-China-US.pdf}{Helveston
+et al.~2015}.
+
+Social network and peer-effect studies show that EV uptake is socially
+interdependent. Peer adoption, local visibility, word of mouth, and
+perceived normality shift the effective choice set. This maps directly
+onto social learning in the affordance model. Useful sources include
+\href{https://www.sciencedirect.com/science/article/pii/S2214629614000863}{McCoy
+and Lyons 2014},
+\href{https://research.rug.nl/en/publications/an-agent-based-model-for-diffusion-of-electric-vehicles}{Kangur
+et al.~2017},
+\href{https://www.sciencedirect.com/science/article/pii/S1361920916301031}{Liu
+et al.~2017}, and
+\href{https://dspace.library.uu.nl/handle/1874/375563}{Edelenbosch et
+al.~2018}.
+
+Charging infrastructure and spatial adoption models are central for an
+affordance framing. Charging availability is not just an explanatory
+variable; it is a local opportunity structure. Stronger studies
+distinguish charger counts, accessibility, fast-charging corridors, home
+charging, land-use context, and spatial spillovers. Representative
+sources include
+\href{https://doi.org/10.1016/j.enpol.2014.01.043}{Sierzchula et
+al.~2014}, \href{https://doi.org/10.1086/689702}{Li et al.~2017},
+\href{https://doi.org/10.1088/1748-9326/aad0f8}{Narassimhan and Johnson
+2018}, \href{https://doi.org/10.1016/j.erss.2022.102663}{White et
+al.~2022}, and \href{https://doi.org/10.1016/j.trd.2024.104400}{Qian et
+al.~2024}.
+
+Policy and total cost of ownership models are the best source for cost
+mechanisms. They translate purchase subsidies, taxes, fuel prices,
+electricity prices, charging costs, depreciation, maintenance, and
+vehicle lifetime into adoption conditions. Useful sources include
+\href{https://doi.org/10.1016/j.enpol.2016.03.050}{Langbroek et
+al.~2016}, \href{https://doi.org/10.1016/j.enpol.2018.04.024}{Danielis
+et al.~2018}, \href{https://doi.org/10.1016/j.eneco.2019.104493}{Munzel
+et al.~2019}, and
+\href{https://doi.org/10.1016/j.apenergy.2024.124838}{Noll et al.~2024}.
+
+\subsection{Transferable Mechanisms For An Affordance-Based EV
+ABM}\label{transferable-mechanisms-for-an-affordance-based-ev-abm}
+
+The most useful model design is modular:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Affordance layer: local charging access, home charging, public
+  charging, fast-charging corridors, dealership/model availability,
+  parking access, and financial affordability.
+\item
+  Personal-state layer: environmental orientation, innovation affinity,
+  risk tolerance, range anxiety, price sensitivity, and EV familiarity.
+\item
+  Choice layer: probability of EV purchase conditional on replacement
+  need, affordability, charging feasibility, and perceived usefulness.
+\item
+  Social layer: peer exposure, neighborhood visibility, word of mouth,
+  and social norm updating.
+\item
+  Policy layer: purchase subsidies, taxes, fuel/electricity prices,
+  charging infrastructure support, and information campaigns.
+\item
+  Feedback layer: adoption increases visibility, encourages charger
+  rollout, reduces perceived risk, and may reduce costs through
+  technology learning.
+\end{enumerate}
+
+For the existing Mesa affordance model, the most natural extension is
+not to replace the behavior rule with a full vehicle-choice model
+immediately. A safer first step is to add EV-specific affordance fields
+and let them modify the probability of pro-EV behavior:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{effective\_EV\_propensity =}
+\NormalTok{    personal\_EV\_state}
+\NormalTok{    + peer\_exposure\_effect}
+\NormalTok{    + charging\_affordance\_effect}
+\NormalTok{    {-} price\_or\_TCO\_barrier}
+\NormalTok{    {-} range\_anxiety\_barrier}
+\end{Highlighting}
+\end{Shaded}
+
+This preserves the affordance logic while allowing empirical mechanisms
+from EV adoption models to enter as interpretable modules.
+
+\subsection{Specific Design Guidance}\label{specific-design-guidance}
+
+For price mechanisms, use TCO literature to represent cost as more than
+upfront price. Include purchase price, subsidy, expected fuel savings,
+electricity or charging price, annual mileage, maintenance, home charger
+cost, and depreciation where data are available. Price should affect
+feasibility and adoption probability, not simply subtract from
+environmental attitude.
+
+For infrastructure, avoid using only a global charger count. Treat
+charging as a spatial affordance with home access, nearby public access,
+destination access, fast-charging corridor access, reliability, and
+congestion if possible.
+
+For social learning, use local adoption exposure or network-neighbor
+adoption to change perceived feasibility, risk, and normality. Peer
+effects should be allowed to amplify infrastructure and policy effects.
+
+For heterogeneity, represent households by at least income or budget,
+dwelling type, annual mileage, car replacement timing, environmental
+preference, and innovation affinity. These are repeatedly important
+across choice, ABM, TCO, and infrastructure studies.
+
+\subsection{Key Gaps In The
+Literature}\label{key-gaps-in-the-literature}
+
+Several gaps are relevant for a new research contribution:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  Many models still weakly connect micro-level social influence with
+  spatial charging access.
+\item
+  Used EV markets, resale value, vehicle availability, and supply
+  constraints are under-modeled.
+\item
+  Home charging, renter status, multifamily housing, and equity
+  constraints are often too coarse.
+\item
+  Public charging is often represented as station count, not
+  reliability, congestion, price, or practical accessibility.
+\item
+  Preference updating after trial, ownership experience, and peer
+  information remains simplified.
+\item
+  Policy interactions are usually clearer in system dynamics and TCO
+  models than in household-level ABMs.
+\end{enumerate}
+
+\end{document}

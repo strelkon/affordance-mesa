@@ -1,0 +1,67 @@
+{
+  "item_name": "Social network and peer effects EV adoption models",
+  "model_family": "A mixed family of EV diffusion models combining spatial econometric peer-effects models, agent-based threshold and social-network diffusion models, social-learning formulations in integrated assessment models, and dynamic marketing or contagion models with word-of-mouth and visibility channels.",
+  "scope_definition": "This literature models EV, HEV, and PHEV adoption as socially interdependent rather than purely individual choice. The core mechanisms are peer effects, neighborhood spillovers, contagion, threshold dynamics, social learning, observability or visibility, and positive or negative word-of-mouth. The most relevant studies either estimate peer effects causally from registrations and spatial data or simulate diffusion using explicit networks, thresholds, and social reinforcement.",
+  "representative_papers": [
+    "McCoy and Lyons (2014) - Consumer preferences and the influence of networks in electric vehicle diffusion: An agent-based microsimulation in Ireland.",
+    "Kangur, Jager, Verbrugge, and Bockarjova (2017) - An agent-based model for diffusion of electric vehicles.",
+    "Liu, Roberts, and Sioshansi (2017) - Spatial effects on hybrid electric vehicle adoption.",
+    "Hsu, Li, and Lu (2013) - A dynamic marketing model for hybrid electric vehicles: A case study of Taiwan.",
+    "Edelenbosch, McCollum, Pettifor, Wilson, and van Vuuren (2018) - Interactions between social learning and technological learning in electric vehicle futures.",
+    "Peng and Bai (2024) - Identifying social tipping point through perceived peer effect.",
+    "Kim (2025) - Peer Effects in Electric Vehicle Adoption.",
+    "Jordan, Cooker, Gazmeh, and Qian (2025) - Seeing Is Believing: How Social and Infrastructure Exposure Shape Electric Vehicle Adoption."
+  ],
+  "search_queries_used": [
+    "electric vehicle adoption peer effects model paper neighborhood effects social contagion",
+    "electric vehicle adoption social influence model threshold word-of-mouth paper",
+    "EV adoption peer effects neighborhood spillovers discrete choice model paper",
+    "electric vehicle diffusion agent-based model social contagion peer effects",
+    "Interactions between social learning and technological learning in electric vehicle futures",
+    "Spatial effects on hybrid electric vehicle adoption",
+    "Peer Effect and Perceived Social Tipping Point of EV Adoption",
+    "Seeing Is Believing How Social and Infrastructure Exposure Shape Electric Vehicle Adoption"
+  ],
+  "unit_of_analysis": "Units vary across the literature: individual consumers, households, adopter segments, vehicle models or brands, ZIP codes or ZCTAs, census tracts, neighborhoods, cities, and large regional or national markets. The peer-effect literature often uses local geographic units as proxies for social exposure, while agent-based models operate at the household or consumer-agent level.",
+  "adoption_mechanism": "Adoption is usually modeled as a binary or multinomial vehicle choice whose utility rises with observed prior adoption, social exposure, or local installed base. In agent-based studies, diffusion proceeds through explicit social networks or threshold rules, where agents adopt once private utility plus peer reinforcement exceeds a threshold. In social-learning models, peer adoption reduces perceived risk and shifts later adopters toward EVs. In marketing-style models, positive and negative word-of-mouth alter time-varying adoption probabilities.",
+  "heterogeneity_representation": "Most models include heterogeneity in income, education, environmental preferences, consumer segments, risk aversion, technology familiarity, geography, and baseline vehicle needs. More behaviorally rich models distinguish early adopters from more risk-averse mainstream consumers, while empirical models allow subgroup-specific or place-specific peer effects and different responses to infrastructure and policy.",
+  "social_influence_representation": "Social influence is represented through lagged cumulative local EV adoption, spatial-lag terms for neighboring tracts, explicit network ties among agents, threshold shares of peers who have adopted, social learning that lowers perceived uncertainty, conformity to social norms, and word-of-mouth that can be positive or negative. Several studies also treat visibility as a distinct mechanism: seeing EVs or chargers increases familiarity and makes subsequent adoption more likely.",
+  "spatial_or_infrastructure_representation": "Spatial representation ranges from tract-to-tract adjacency matrices and neighborhood exposure variables to small-world or stylized social networks embedded in geographic space. Infrastructure is modeled as charging-station availability, density, access, or visibility. Recent work suggests infrastructure can matter not only through direct convenience but also indirectly by increasing EV exposure and making the technology more observable in everyday activity spaces.",
+  "price_or_cost_representation": "Vehicle price, total cost of ownership, fuel prices, taxes, subsidies, battery cost declines, and perceived technology risk are central cost channels. Agent-based and IAM studies typically combine these with social feedbacks, so falling costs and rising peer adoption reinforce one another. Some marketing models show that price signals alone are often insufficient when visibility, learning, or negative word-of-mouth are weak or adverse.",
+  "policy_levers": [
+    "Purchase subsidies and rebates",
+    "Fuel taxes or gasoline price changes",
+    "Charging infrastructure deployment",
+    "Information and outreach campaigns",
+    "Technology-specific support for BEVs versus hybrids",
+    "Policies that increase observability, trialability, or social exposure",
+    "Targeted equity-oriented infrastructure placement"
+  ],
+  "data_sources": "The evidence base combines vehicle registration data, U.S. Census and American Community Survey covariates, charger-location data, survey microdata, conjoint and stated-preference data, smart-metering trial samples, mobility and points-of-interest data, and historical market-share series. Examples include Irish household survey microdata in McCoy and Lyons, 1,795 Dutch respondents in Kangur et al., Ohio tract-level registration data in Liu et al., Shanghai survey data with 1,111 respondents in Peng and Bai, Michigan ZCTA-level EV adoption in Kim, and Seattle-Tacoma mobility exposure data in Jordan et al.",
+  "calibration_or_estimation": "Empirical studies estimate peer effects using spatial regression, spatial-lag models, time-series spatial models, instrumental variables, mediation analysis, and three-stage least squares. Simulation studies calibrate agents from survey distributions, spatial microsimulation, and observed market structure, then tune remaining parameters to historical adoption trajectories or segment behavior. The IAM literature calibrates social learning alongside technology learning curves and heterogeneous adopter groups.",
+  "validation_approach": "Validation approaches include reproducing observed adoption shares or diffusion patterns, checking spatial clustering against real registration data, comparing simulated market outcomes to historical trends, sensitivity analysis over network structure and policy assumptions, and causal robustness checks for peer-effect identification. Validation is generally stronger in the econometric literature than in the more exploratory scenario-based ABM literature.",
+  "main_findings": "The literature consistently finds that social influence matters for EV diffusion, but the strength and channel vary by context. Mild peer effects can generate strong local clustering even when aggregate adoption is still low. Spatial econometric work finds significant neighborhood spillovers, while recent causal work finds model-specific peer effects within local areas and suggests subsidies are more powerful when social feedbacks are included. Social learning and technological learning are mutually reinforcing: cost declines help early uptake, and peer exposure helps the mainstream follow. Visibility matters because observed EVs and chargers reduce uncertainty and normalize adoption. Word-of-mouth can accelerate adoption when favorable, but negative social media or negative experiences can sharply slow diffusion. Threshold-based evidence from Shanghai suggests a perceived tipping range around 31 to 40 percent peer adoption, after which self-sustaining uptake becomes more plausible.",
+  "limitations": "A central limitation is identification: peer effects are hard to separate from homophily, common shocks, policy targeting, and correlated geography. Many studies use HEV or PHEV analogs rather than pure BEVs, which may limit transferability. Social networks are often approximated by geographic adjacency or stylized graph structures rather than observed interpersonal ties. Many ABMs rely on stated preferences, partial calibration, or limited out-of-sample validation. Fast-moving EV technology, infrastructure growth, and policy change also make older parameterizations age quickly.",
+  "relevance_to_affordance_model": "This literature is highly relevant to an affordance-based EV adoption model because it shows that adoption depends not only on objective costs and infrastructure but also on whether people perceive EV use as feasible, normal, visible, and learnable in their local environment. Social exposure, charger visibility, and peer experience all change the perceived action space available to potential adopters, which is directly aligned with an affordance perspective.",
+  "transferable_mechanisms": [
+    "Local exposure stock: model a rising adoption propensity from nearby cumulative EV ownership or observed EV encounters.",
+    "Heterogeneous thresholds: allow different consumer groups to require different levels of social proof before adoption.",
+    "Visibility mediation: separate the direct utility of charging infrastructure from its indirect effect through making EVs more visible.",
+    "Social learning: reduce perceived technology risk as peers adopt and share experience.",
+    "Positive and negative word-of-mouth: allow asymmetry so bad experiences can spread differently from good ones.",
+    "Policy multipliers: let subsidies or infrastructure have larger effects when social reinforcement is already present."
+  ],
+  "implementation_guidance": "A practical implementation is to model baseline EV utility from costs, income, charging access, and policy, then add a social term built from local adoption, network exposure, or observed visibility. Keep social influence separable into at least two channels: learning or risk reduction, and norm or conformity effects. Represent heterogeneity explicitly with consumer segments or distributions of adoption thresholds. If data permit, calibrate peer effects from registrations and spatial covariates rather than assuming them. For policy experiments, compare scenarios with and without peer reinforcement to quantify social multipliers and equity effects.",
+  "key_gaps_for_research": "Important gaps include better causal identification with longitudinal individual-level data, direct observation of real social networks instead of geographic proxies, stronger modeling of negative versus positive word-of-mouth, integration of second-hand EV markets and fleet channels, richer treatment of workplace and destination charging as visibility mechanisms, and more explicit equity analysis on who converts exposure into adoption. There is also a gap between micro-level peer-effect evidence and macro forecasting models that still treat social influence too crudely.",
+  "source_urls": [
+    "https://www.sciencedirect.com/science/article/pii/S2214629614000863",
+    "https://research.rug.nl/en/publications/an-agent-based-model-for-diffusion-of-electric-vehicles",
+    "https://www.sciencedirect.com/science/article/pii/S1361920916301031",
+    "https://www.sciencedirect.com/science/article/pii/S1361920913000059",
+    "https://dspace.library.uu.nl/handle/1874/375563",
+    "https://researchportalplus.anu.edu.au/en/publications/identifying-social-tipping-point-through-perceived-peer-effect",
+    "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=5365165",
+    "https://trid.trb.org/View/2617144"
+  ],
+  "uncertain": []
+}

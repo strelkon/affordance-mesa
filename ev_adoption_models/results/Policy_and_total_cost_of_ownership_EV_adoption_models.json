@@ -1,0 +1,101 @@
+{
+  "item_name": "Policy and total cost of ownership EV adoption models",
+  "model_family": [
+    "Discrete choice and stated-preference models with policy and operating-cost attributes",
+    "Probabilistic or engineering-economic total cost of ownership (TCO) models",
+    "Panel econometric policy-adoption models",
+    "Techno-economic diffusion or stock-transition models",
+    "Integrated assessment or energy-system scenario models"
+  ],
+  "scope_definition": "This item covers literature that explains or simulates electric vehicle adoption by explicitly modelling purchase subsidies, tax exemptions or taxes, fuel prices, electricity or charging prices, ownership and operating costs, carbon policy, and policy scenarios. The core mechanism in this literature is that policy changes alter either the upfront purchase gap, the recurring use-cost gap, or the surrounding energy system conditions that determine the private or social attractiveness of EV adoption.",
+  "representative_papers": [
+    "Helveston et al. (2015), \"Will subsidies drive electric vehicle adoption? Measuring consumer preferences in the U.S. and China\". Choice-based conjoint and discrete choice modelling of subsidies, price, operating cost, range, and charging attributes.",
+    "Langbroek et al. (2016), \"The effect of policy incentives on electric vehicle adoption\". Stated-choice modelling of fixed-cost and recurring incentives in Sweden.",
+    "Danielis, Giansoldati, and Rotaris (2018), \"A probabilistic total cost of ownership model to evaluate the current and future prospects of electric cars uptake in Italy\". Scenario-based stochastic TCO model with subsidy, parking-fee savings, fuel-price, and tax assumptions.",
+    "Munzel et al. (2019), \"How large is the effect of financial incentives on electric vehicle sales? A global review and European analysis\". Panel regression linking incentives and fuel prices to plug-in vehicle sales shares.",
+    "Ravulaparthy et al. (2022), \"Interaction of Consumer Heterogeneity and Technological Progress in the US Electric Vehicle Market\". TCO-based cascading diffusion model with household heterogeneity, learning curves, and state-level fuel and electricity prices.",
+    "Mekky and Collins (2024), \"The impact of state policies on electric vehicle adoption - A panel data analysis\". Fixed-effects panel model comparing low-carbon electricity policy, financial incentives, and charging infrastructure.",
+    "Noll, Schmidt, and Egli (2024), \"Managing trade-offs between electric vehicle taxation and adoption\". Techno-economic adoption model for BEV taxation timing and design in multiple jurisdictions.",
+    "Assessment of mobility decarbonization with carbon tax policies and electric vehicle incentives in the U.S. (2025). GCAM-USA integrated assessment of state-level carbon tax and BEV incentive interactions."
+  ],
+  "search_queries_used": [
+    "electric vehicle adoption model subsidy fuel price carbon tax total cost of ownership literature",
+    "\"Will subsidies drive electric vehicle adoption?\" electric vehicle",
+    "\"The effect of policy incentives on electric vehicle adoption\"",
+    "\"A probabilistic total cost of ownership model\" electric cars uptake Italy",
+    "\"How large is the effect of financial incentives on electric vehicle sales\"",
+    "\"Interaction of Consumer Heterogeneity and Technological Progress in the US Electric Vehicle Market\"",
+    "\"Managing trade-offs between electric vehicle taxation and adoption\"",
+    "\"Assessment of mobility decarbonization with carbon tax policies and electric vehicle incentives in the U.S.\"",
+    "\"The impact of state policies on electric vehicle adoption\" panel data"
+  ],
+  "unit_of_analysis": "The literature spans several units of analysis: individual consumers or stated-choice respondents, household or vehicle-user segments, vehicle purchase cohorts, national or state EV sales shares, and jurisdiction-level policy scenarios. TCO studies usually evaluate a vehicle-household or vehicle-segment decision problem, while econometric studies use country, state, or province panels and scenario models simulate stock turnover at national or regional scale.",
+  "adoption_mechanism": "Most studies model EV uptake as a cost-sensitive choice between EVs and conventional vehicles. In discrete choice models, policy enters utility through purchase price, tax treatment, recurring user benefits, or operating cost. In TCO models, adoption is inferred from whether lifecycle private cost approaches or beats the internal-combustion alternative under assumptions on annual mileage, charging mode, depreciation, and energy prices. In diffusion and scenario models, adoption evolves through stock turnover, learning-by-doing, or scenario-driven changes in relative generalized cost, sometimes coupled to infrastructure or energy-system feedbacks.",
+  "heterogeneity_representation": "Heterogeneity is usually represented through income, annual mileage, vehicle segment, geography, charging access, discount rates, and region-specific energy prices. The stronger papers in this cluster move beyond an average consumer by segmenting households or resolving many consumer types; for example, Ravulaparthy et al. model 309,000 U.S. household types with different miles traveled, vehicle classes, and state-level gasoline and electricity prices. Econometric studies typically capture heterogeneity with fixed effects and cross-jurisdiction controls rather than micro-level behavioral differences.",
+  "social_influence_representation": "Social influence is usually weak or absent in this policy-TCO sub-literature. Most models treat EV adoption as an economically motivated choice rather than a peer-contagion process. When interaction effects are included, they are more often indirect market feedbacks such as learning-by-doing, cumulative adoption lowering future vehicle cost, or two-sided platform and infrastructure network effects rather than explicit neighbour imitation.",
+  "spatial_or_infrastructure_representation": "Spatial detail is often included through region-specific gasoline and electricity prices, public-charger density, home versus public charging access, or jurisdiction-specific tax systems. Cross-country and state panel models represent infrastructure with charger density or availability variables. Some techno-economic and platform models treat infrastructure as a complement that changes EV utility, while integrated assessment models embed EV demand inside a regional electricity system with state-level policy heterogeneity.",
+  "price_or_cost_representation": "This literature treats cost very explicitly. Typical components are upfront vehicle purchase price, subsidies or tax exemptions, depreciation or residual value, annual mileage, maintenance, insurance or fees, home charger and installation cost, fuel and electricity prices, public charging prices, discount rates, taxes, and in some studies carbon prices. A recurring finding from the TCO literature is that results are highly sensitive to annual use, charging mode, depreciation assumptions, and local energy prices; newer reviews also note that older studies often omitted resale value, charging equipment, or full recurring cost components.",
+  "policy_levers": [
+    "Purchase subsidies and rebates",
+    "Value-added tax, registration tax, purchase tax, or ownership tax exemptions",
+    "Fuel taxes, diesel tax changes, or feebate-style fiscal measures",
+    "Recurring user incentives such as parking, toll, or lane-access benefits",
+    "Public charging infrastructure support",
+    "Electricity tariff or charging-price assumptions",
+    "BEV-specific road-use or distance-based taxes",
+    "Carbon taxes or power-sector carbon pricing",
+    "Clean electricity or low-carbon power policy interacting with EV adoption"
+  ],
+  "data_sources": "Common data sources include stated-choice or conjoint survey data, national household travel surveys, vehicle registration and sales data, cross-country or state policy databases, charger counts, income and macroeconomic indicators, official fuel and electricity price series, vehicle specification data, and electricity-system assumptions. Representative examples in the sampled literature include U.S. and China conjoint surveys, Sweden stated-choice data, Italy scenario inputs for vehicle use and prices, the U.S. National Household Travel Survey, European country sales panels, and fifty-state U.S. registration and policy panels.",
+  "calibration_or_estimation": "Calibration and estimation vary by model family. Discrete choice papers estimate utility coefficients from stated preference or conjoint experiments. Econometric studies estimate fixed-effects or panel regressions relating EV uptake to incentive size, energy prices, charger density, and policy indicators. TCO studies calibrate vehicle cost and usage distributions from market and engineering data, then run scenario or probabilistic simulations. Dynamic and integrated assessment models calibrate stock turnover, learning curves, and baseline energy-system trajectories before testing policy scenarios.",
+  "validation_approach": "Validation is uneven. Econometric studies usually report statistical fit, coefficient robustness, and alternative specifications. Scenario and diffusion papers typically compare baseline adoption trajectories or cost trends with observed sales or historical benchmarks, then use sensitivity analysis for uncertain parameters such as battery cost decline, fuel prices, and policy timing. TCO models more often validate through parameter transparency and scenario comparison than through formal out-of-sample behavioral validation.",
+  "main_findings": [
+    "Financial incentives generally increase EV uptake, and European panel evidence suggests roughly a 5% to 7% relative increase in plug-in sales share per additional EUR 1,000 of incentive under the studied specifications.",
+    "Fuel and electricity prices matter because they change the operating-cost advantage of EVs; higher fuel prices and lower charging costs improve EV competitiveness.",
+    "TCO parity is highly context-dependent. High annual mileage, home charging, falling battery costs, and supportive tax treatment can bring EVs close to or below conventional vehicle ownership cost, while expensive public charging or low mileage can delay parity.",
+    "Recurring or use-based incentives can be influential, not only upfront purchase rebates, because they lower the marginal or experienced cost of using an EV.",
+    "Charging infrastructure is often as important as, or sometimes more important than, direct subsidies in cross-jurisdiction studies, indicating strong complementarity between cost policy and convenience policy.",
+    "Carbon policy interacts with EV policy in non-linear ways. Integrated electricity-transport models show that carbon pricing can improve overall decarbonization but may also reduce the incremental emissions benefit or even slow EV uptake in some regions if electricity prices rise and grid decarbonization is incomplete.",
+    "Premature taxation of BEVs to replace declining fuel-tax revenue can slow the transition; recent techno-economic studies argue that timing and jurisdictional context are critical."
+  ],
+  "limitations": [
+    "Many studies reduce vehicle choice to monetary cost and a limited set of attributes, omitting brand preferences, supply constraints, waiting times, financing frictions, or behavioural biases.",
+    "TCO assumptions remain inconsistent across studies; some models omit charger cost, resale value, public-charging premiums, or realistic discounting, which can bias parity claims.",
+    "Econometric policy elasticities are context-dependent and may suffer from endogeneity because pro-EV jurisdictions often adopt several supportive policies at once.",
+    "Many policy studies capture direct demand effects but not full electricity-system feedbacks, distributional outcomes, or fiscal sustainability.",
+    "Social learning and peer effects are under-modelled relative to the explicit treatment of costs and taxes."
+  ],
+  "relevance_to_affordance_model": "This literature is highly relevant for an affordance-oriented EV adoption model because it operationalizes affordability as a changing capability shaped by policy, energy prices, and charging access. It provides concrete ways to translate external conditions into perceived or actual action possibilities: upfront affordability through rebates or tax exemptions, everyday affordability through fuel and charging costs, and contextual affordability through infrastructure and clean-electricity availability.",
+  "transferable_mechanisms": [
+    "Upfront price-gap reduction through rebates, tax credits, or tax exemptions",
+    "Recurring operating-cost gap driven by gasoline, diesel, electricity, and public-charging prices",
+    "Mileage-dependent TCO thresholds that determine which households economically benefit from EVs",
+    "Home-charging versus public-charging access as a major moderator of cost advantage",
+    "Learning curves and cumulative adoption reducing future EV prices",
+    "Policy interaction effects between transport policy and electricity-system decarbonization",
+    "Infrastructure and policy complementarity rather than subsidy-only effects",
+    "Jurisdiction-specific heterogeneity in taxes, energy prices, and revenue dependence"
+  ],
+  "implementation_guidance": "A practical model should combine a micro-level relative-cost module with a stock-turnover or diffusion module. At minimum, represent households or market segments by annual mileage, vehicle class, income or discount-rate proxy, dwelling or charging access, and region-specific fuel and electricity prices. Compute a generalized ownership cost that includes purchase price, incentive and tax treatment, maintenance, residual value, charger cost, and home versus public charging prices. Then layer policy scenarios for rebates, registration or ownership taxes, fuel taxes, carbon pricing, electricity tariffs, and charging infrastructure. Calibration should use observed sales or registration data, and sensitivity analysis should focus on battery costs, public charging prices, depreciation, and policy phase-out timing.",
+  "key_gaps_for_research": [
+    "Better integration of TCO with non-monetary adoption barriers such as hassle, trust, financing constraints, and bounded attention",
+    "More explicit modelling of public-charging price dispersion and charging-behaviour adaptation",
+    "Stronger causal identification of interacting policies rather than single-policy elasticities",
+    "Distributional and equity impacts of subsidy, tax, and road-revenue replacement policies",
+    "Coupled models that jointly represent EV demand, charger deployment, electricity prices, and grid decarbonization",
+    "Explicit social influence combined with policy and cost mechanisms rather than treating these strands separately"
+  ],
+  "source_urls": [
+    "https://www.sciencedirect.com/science/article/pii/S0965856415000038",
+    "https://doi.org/10.1016/j.enpol.2016.03.050",
+    "https://doi.org/10.1016/j.enpol.2018.04.024",
+    "https://doi.org/10.1016/j.eneco.2019.104493",
+    "https://www.mdpi.com/1996-1073/15/13/4722",
+    "https://doi.org/10.1016/j.rser.2023.114014",
+    "https://doi.org/10.1016/j.apenergy.2024.124838",
+    "https://doi.org/10.1016/j.crsus.2024.100130",
+    "https://doi.org/10.1016/j.trd.2018.02.002",
+    "https://www.nber.org/papers/w28620"
+  ],
+  "uncertain": []
+}

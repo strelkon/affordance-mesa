@@ -1,0 +1,106 @@
+{
+  "item_name": "Discrete choice and hybrid choice EV adoption models",
+  "model_family": "Random-utility consumer vehicle choice models for EV adoption, spanning multinomial logit, nested logit, mixed logit, latent class, and hybrid choice / integrated choice and latent variable (ICLV) specifications.",
+  "scope_definition": "This literature estimates individual, household, or transaction-level choice among ICE, HEV, PHEV, and BEV alternatives using stated preference, revealed preference, or joint RP/SP data. Its main purpose is to recover willingness to pay for EV-relevant attributes such as purchase price, driving range, charging time, charging access, operating cost, emissions, incentives, and latent attitudes such as environmental concern or technology affinity, then simulate EV market shares under policy or technology scenarios.",
+  "representative_papers": [
+    "Brownstone, Bunch, and Train (2000), Joint mixed logit models of stated and revealed preferences for alternative-fuel vehicles: seminal joint RP/SP mixed-logit demand model for California households.",
+    "Bolduc, Boucher, and Alvarez-Daziano (2008), Hybrid Choice Modeling of New Technologies for Car Choice in Canada: early hybrid-choice application showing how latent attitudes and perceptions improve AFV choice realism.",
+    "Hidrue, Parsons, Kempton, and Gardner (2011), Willingness to pay for electric vehicles and their attributes: national stated-choice EV study with a latent class random utility model.",
+    "Glerum, Stankovikj, Themans, and Bierlaire (2014), Forecasting the Demand for Electric Vehicles: Accounting for Attitudes and Perceptions: hybrid choice forecasting with personalized stated-preference data.",
+    "Kim, Rasouli, and Timmermans (2014), Expanding scope of hybrid choice models allowing for mixture of social influences and latent attitudes: integrated model of EV purchase intention with peer effects and latent attitudes.",
+    "Tanaka, Ida, Murakami, and Friedman (2014), Consumers' willingness to pay for alternative fuel vehicles: A comparative discrete choice analysis between the U.S. and Japan: cross-country stated-preference analysis with policy simulations.",
+    "Helveston et al. (2015), Will subsidies drive electric vehicle adoption? Measuring consumer preferences in the U.S. and China: MNL and mixed logit in WTP space comparing PEV preferences across countries.",
+    "Axsen, Bailey, and Castro (2015), Preference and lifestyle heterogeneity among potential plug-in electric vehicle buyers: latent-class and lifestyle segmentation for early PEV demand.",
+    "Jensen, Cherchi, and Mabit (2013), On the stability of preferences and attitudes before and after experiencing an electric vehicle: two-wave panel hybrid choice evidence on experience and attitudes.",
+    "Jia and Chen (2023), Investigating heterogeneous preferences for plug-in electric vehicles: Policy implications from different choice models: direct comparison of MXL, latent class, and LC-MXL.",
+    "Fridstrom and Ostli (2022), The Revealed Preference for Battery Electric Vehicle Range: large-scale nested-logit revealed-preference evidence from Norway on diminishing marginal value of range."
+  ],
+  "search_queries_used": [
+    "\"electric vehicle\" mixed logit stated preference purchase choice paper",
+    "\"hybrid choice\" electric vehicle purchase choice latent attitudes paper",
+    "review discrete choice electric vehicle adoption stated preference mixed logit",
+    "site:sciencedirect.com electric vehicle mixed logit willingness to pay paper",
+    "\"revealed preference\" electric vehicle choice mixed logit paper",
+    "\"Will subsidies drive electric vehicle adoption?\" mixed logit China US",
+    "\"Forecasting the Demand for Electric Vehicles: Accounting for Attitudes and Perceptions\"",
+    "\"Investigating heterogeneous preferences for plug-in electric vehicles: Policy implications from different choice models\""
+  ],
+  "unit_of_analysis": "Usually individual respondents, households, or vehicle-purchase choice occasions; in revealed-preference applications, observed transactions or model-variant market shares.",
+  "adoption_mechanism": "EV adoption is modeled as utility-maximizing choice over discrete vehicle alternatives. Estimated utility typically increases with lower purchase price, lower operating cost, better charging access, shorter charging time, longer range, better performance, stronger incentives, and favorable latent attitudes; predicted adoption follows from the resulting choice probabilities and scenario simulations.",
+  "heterogeneity_representation": "The literature moves from homogeneous MNL specifications to nested logit, mixed logit random coefficients, latent class segmentation, panel error components, and hybrid choice / ICLV systems in which latent attitudes affect class membership and/or utility directly.",
+  "social_influence_representation": "Social influence is often omitted or proxied indirectly, but a notable subliterature explicitly adds peer opinions, social-network adoption share, informational or normative conformity, or neighbor effects. Where modeled, social influence is usually positive but weaker than core price, range, and charging attributes.",
+  "spatial_or_infrastructure_representation": "Most studies use simplified infrastructure variables such as public charging-station availability, distance to charging, home plug access, or recharge time. Only a minority explicitly represent built environment, charger geography, or transaction-level spatial context, so spatial realism is generally limited compared with the detail devoted to vehicle attributes.",
+  "price_or_cost_representation": "Vehicle purchase price is almost always central. Many studies also include fuel or electricity cost, operating-cost savings, charging time, range trade-offs, maintenance or total-cost proxies, and willingness-to-pay-space coefficients; revealed-preference studies sometimes note potential price endogeneity.",
+  "policy_levers": [
+    "Purchase subsidies, rebates, or tax credits",
+    "Charging-infrastructure deployment and station availability",
+    "Fuel or electricity cost changes",
+    "Technology improvement scenarios for battery range and charging speed",
+    "Information, experience, or social-acceptance interventions",
+    "In some studies, access or privilege incentives such as parking or lane access"
+  ],
+  "data_sources": "The evidence base is dominated by stated-choice and conjoint surveys tailored to hypothetical vehicle alternatives. Important exceptions include joint RP/SP datasets for alternative-fuel vehicle choice, repeated panel stated-choice data collected before and after EV experience, and large revealed-preference registration or transaction datasets such as Norwegian new-car purchases.",
+  "calibration_or_estimation": "Models are estimated mainly by maximum likelihood or maximum simulated likelihood. Common specifications are MNL, nested logit, mixed logit in preference or WTP space, latent class random utility models, and hybrid choice / ICLV systems that combine structural equations for latent attitudes with measurement equations for attitudinal indicators.",
+  "validation_approach": "Validation is mostly internal: log-likelihood and information-criterion comparisons, sign and magnitude checks, holdout prediction, and scenario simulation. A few studies use repeated panels or real transaction data, but true ex post validation against later realized EV adoption is still uncommon.",
+  "main_findings": [
+    "Purchase price, range, charging time or access, and operating cost are the dominant observed drivers of EV choice.",
+    "Preference heterogeneity is large; mixed logit, latent class, and hybrid choice models often imply materially different policy elasticities and market shares than simple MNL models.",
+    "Subsidies are usually effective, but many early-market studies find they are not sufficient on their own to make BEVs dominant when range, charging, and price remain unfavorable.",
+    "PHEVs or mid-range electrified options often have broader near-term appeal than BEVs in early-market stated-preference studies.",
+    "Latent attitudes such as environmental concern, technology acceptance, green lifestyle, and perceived practicality raise EV choice probabilities.",
+    "Social influence matters, but it is usually secondary to cost and convenience attributes unless peer adoption is made highly salient.",
+    "Revealed-preference evidence shows diminishing marginal value of additional range and highlights the importance of realistic market structure and substitution patterns."
+  ],
+  "limitations": [
+    "Heavy reliance on stated-preference data creates hypothetical bias and an intention-versus-purchase gap.",
+    "Many influential estimates come from early-market contexts in the 1990s to mid-2010s and may understate current EV familiarity, model variety, and charging availability.",
+    "Vehicle design, brand, supply constraints, and used-vehicle dynamics are often simplified or held constant.",
+    "Charging availability is usually stylized rather than modeled as actual accessible infrastructure with reliability and queueing constraints.",
+    "Revealed-preference models can face price endogeneity and incomplete observability of real choice sets.",
+    "Hybrid choice results depend on indicator design, latent-variable identification, and survey quality."
+  ],
+  "relevance_to_affordance_model": "High. This literature already treats adoption as a response to concrete affordances such as price, range, charging time, home charging access, public infrastructure, and policy incentives, while allowing those affordances to be filtered through latent attitudes, lifestyle, and experience. It is directly useful for building an affordance-oriented EV adoption model with heterogeneous consumers.",
+  "transferable_mechanisms": [
+    "Random-utility mapping from vehicle attributes to adoption probabilities",
+    "Random coefficients and latent classes for heterogeneous willingness to pay",
+    "Latent-attitude modules for environmental concern, technology affinity, and risk perception",
+    "Joint RP/SP estimation to combine realistic current-market scaling with future-technology scenarios",
+    "Nonlinear utility treatment for range and charging attributes to capture diminishing returns",
+    "Scenario simulation of subsidies, infrastructure, and technology improvement",
+    "Peer or neighbor-effect modules when social-exposure data are available"
+  ],
+  "implementation_guidance": [
+    "Use mixed logit or LC-MXL as a baseline if behavioral realism matters; plain MNL is often too restrictive.",
+    "If attitudinal indicators are available, estimate an ICLV / hybrid choice model rather than inserting attitude scores directly into utility.",
+    "Represent price, range, charging time, home charging, and public charging separately instead of collapsing them into a single total-cost term.",
+    "Allow nonlinear marginal utility for range and charging convenience because both SP and RP evidence suggest diminishing returns.",
+    "Where possible, combine SP data for future EV configurations with RP data for actual current purchases to improve scale and substitution patterns.",
+    "Validate with holdout tasks, temporal out-of-sample checks, or later registration data rather than relying only on in-sample fit.",
+    "Keep policy simulations tied to supply-side realism, including vehicle availability, body type, and charger-access constraints."
+  ],
+  "key_gaps_for_research": [
+    "More joint RP/SP work using contemporary EV markets instead of only early-adopter contexts",
+    "Explicit treatment of charger geography, reliability, queueing, and home-charging feasibility",
+    "Dynamic preference updating after test drives, ownership experience, and social exposure",
+    "Integration of vehicle availability, brand or model choice, and supply constraints with consumer demand",
+    "Stronger causal identification of policy effects using quasi-experimental or panel data",
+    "Better coverage of used-EV markets, fleet purchases, and lower-income households",
+    "Closer linkage between latent attitudes and actual revealed purchases over time"
+  ],
+  "source_urls": [
+    "https://www.mdpi.com/1996-1073/12/2/318",
+    "https://www.tandfonline.com/doi/full/10.1080/01441647.2016.1230794",
+    "https://trid.trb.org/View/656613",
+    "https://journals.sagepub.com/doi/10.3141/2082-08",
+    "https://www.sciencedirect.com/science/article/pii/S0928765511000200",
+    "https://doi.org/10.1287/trsc.2013.0487",
+    "https://doi.org/10.1016/j.tra.2014.08.016",
+    "https://www.cmu.edu/me/ddl/publications/2015-TRA-Helveston-etal-EVs-in-China-US.pdf",
+    "https://gspp.berkeley.edu/assets/uploads/research/pdf/WTP_for_Alternative_Fuel_Vehicles_forthcoming_Transportation_Research_Policy_and_Practice_1014.pdf",
+    "https://www.sciencedirect.com/science/article/pii/S0140988315001553",
+    "https://eprints.ncl.ac.uk/228614",
+    "https://doi.org/10.1016/j.tra.2023.103693",
+    "https://findingspress.org/article/31635-the-revealed-preference-for-battery-electric-vehicle-range"
+  ],
+  "uncertain": []
+}
