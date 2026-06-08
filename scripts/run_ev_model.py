@@ -1,50 +1,43 @@
-"""
-Run the EVAdoptionModel for a chosen number of steps.
-This script works both in Jupyter (%run) and from the terminal.
-"""
+"""Run the EVAdoptionModel for a chosen number of steps."""
+
+from __future__ import annotations
+
+import sys
+from pathlib import Path
+
+if __package__ is None or __package__ == "":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from affordance_mesa.ev_model import EVAdoptionModel
 from affordance_mesa.ev_params import EVParams
 
 
-def run_model(steps=50, seed=42):
-    # 1. Define EV model parameters
-    params = EVParams()
-    params.width = 20
-    params.height = 20
-    params.number_of_agents = 200
-    params.subsidy = 3000
-    params.fuel_price = 1.8
-    params.electricity_price = 0.25
-    params.charger_expansion_rate = 0.5
-    params.adoption_threshold = 0.0
+def run_model(steps: int = 50, seed: int = 42) -> EVAdoptionModel:
+    params = EVParams(
+        width=20,
+        height=20,
+        number_of_agents=100,
+        subsidy=3000,
+        fuel_price=1.8,
+        electricity_price=0.25,
+        initial_charging_coverage=0.05,
+        charger_expansion_rate=0.5,
+        adoption_threshold=0.5,
+    )
 
-    # 2. Create model
-    model = EVAdoptionModel(params=params, seed=seed)
+    model = EVAdoptionModel(params, seed=seed)
+    model.run_model(steps)
 
-    # 3. Run model
-    for _ in range(steps):
-        model.step()
-
-    # 4. Print final results
     print(f"Ran EV model for {steps} steps.")
     print("Final outcomes:")
     print(f"  EV adoption share: {model.ev_adoption_share:.3f}")
     print(f"  Mean adoption score: {model.mean_adoption_score:.3f}")
     print(f"  Mean charging access: {model.mean_charging_access:.3f}")
+    print(f"  Charger sites: {len(model.chargers)}")
     print(f"  Mean TCO gap (ICE - EV): {model.mean_tco_gap:.2f}")
 
     return model
 
+
 if __name__ == "__main__":
-    model = run_model()
-
-
-
-
-
-
-
-
-
-
+    run_model()

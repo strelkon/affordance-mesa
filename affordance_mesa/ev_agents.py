@@ -1,31 +1,32 @@
-from .agents import ConsumerAgent
-import numpy as np
+"""EV-enabled agents built as a subclass of the affordance ConsumerAgent."""
 
-from .ev_costs import ev_tco, ice_tco, economic_score
+from __future__ import annotations
+
+from .agents import ConsumerAgent
+from .ev_costs import economic_score, ev_tco, ice_tco
+
 
 class EVConsumerAgent(ConsumerAgent):
-    """
-    Extensão do ConsumerAgent para incluir atributos e decisão de adoção EV.
-    """
+    """Consumer agent with an additional vehicle replacement decision."""
 
     def __init__(
         self,
         model,
-        pro_env,
-        non_env,
-        lower_bound,
-        upper_bound,
+        pro_env: float,
+        non_env: float,
+        lower_bound: float,
+        upper_bound: float,
         *,
-        income,
-        annual_mileage,
-        vehicle_age,
-        replacement_interval,
-        home_charging_access,
-        environmental_concern,
-        price_sensitivity,
-        range_anxiety,
-        peer_sensitivity,
-    ):
+        income: float,
+        annual_mileage: float,
+        vehicle_age: int,
+        replacement_interval: int,
+        home_charging_access: float,
+        environmental_concern: float,
+        price_sensitivity: float,
+        range_anxiety: float,
+        peer_sensitivity: float,
+    ) -> None:
         super().__init__(
             model=model,
             pro_env=pro_env,
@@ -34,7 +35,6 @@ class EVConsumerAgent(ConsumerAgent):
             upper_bound=upper_bound,
         )
 
-        # --- Atributos EV ---
         self.income = income
         self.annual_mileage = annual_mileage
         self.vehicle_age = vehicle_age
@@ -44,96 +44,89 @@ class EVConsumerAgent(ConsumerAgent):
         self.price_sensitivity = price_sensitivity
         self.range_anxiety = range_anxiety
         self.peer_sensitivity = peer_sensitivity
-
-        # --- Estado EV ---
         self.ev_adopted = False
+
         self.last_adoption_score = 0.0
+        self.last_charging_score = 0.0
+        self.last_economic_score = 0.0
+        self.last_peer_adoption_share = 0.0
         self.last_tco_gap = 0.0
         self.last_ev_tco = 0.0
         self.last_ice_tco = 0.0
 
-    # ---------------------------------------------------------
-    # STEP DO AGENTE
-    # ---------------------------------------------------------
-    def step(self):
-        self.consider_ev_adoption()
+    def step(self) -> None:
+        """Run original affordance behaviour, then the EV decision layer."""
 
-    # ---------------------------------------------------------
-    # REGRA DE ADOÇÃO EV
-    # ---------------------------------------------------------
-    def consider_ev_adoption(self):
-        m = self.model
-        p = m.params
+        super().step()
+        self.vehicle_age += 1
 
-        # ---------------------------------------------------------
-        # 1. TCO ICE
-        # ---------------------------------------------------------
-        fuel_cost = self.annual_mileage / 15.0 * p.fuel_price
-        maintenance_ice = 600.0
-        depreciation_ice = 1500.0
-        ice_tco = fuel_cost + maintenance_ice + depreciation_ice
+        if self.vehicle_age >= self.replacement_interval and not self.ev_adopted:
+            self.consider_ev_adoption()
 
-        # ---------------------------------------------------------
-        # 2. TCO EV
-        # ---------------------------------------------------------
-        electricity_cost = self.annual_mileage / 6.0 * p.electricity_price
-        maintenance_ev = 300.0
-        depreciation_ev = 1800.0 - p.subsidy
-        ev_tco = electricity_cost + maintenance_ev + depreciation_ev
-
-        # ---------------------------------------------------------
-        # 3. TCO gap
-        # ---------------------------------------------------------
-        tco_gap = ice_tco - ev_tco
-        self.last_ice_tco = ice_tco
-        self.last_ev_tco = ev_tco
-        self.last_tco_gap = tco_gap
-
-        # Score económico normalizado
-        economic_score = 1 / (1 + np.exp(-tco_gap / 2000))
-
-        # ---------------------------------------------------------
-        # 4. Charging score
-        # ---------------------------------------------------------
+    def consider_ev_adoption(self) -> None:
+        p = self.model.params
         x, y = self.pos
-        charging_score = m.charging_access[x, y]
-        charging_score = charging_score / (1 + charging_score)
 
-        # ---------------------------------------------------------
-        # 5. Environmental concern
-        # ---------------------------------------------------------
-        environmental_score = self.environmental_concern
-
-        # ---------------------------------------------------------
-        # 6. Peer adoption share
-        # ---------------------------------------------------------
-        neighbours = m.network_neighbours(self)
-        if neighbours:
-            peer_adoption_share = sum(a.ev_adopted for a in neighbours) / len(neighbours)
-        else:
-            peer_adoption_share = 0.0
-
-        # ---------------------------------------------------------
-        # 7. Range anxiety
-        # ---------------------------------------------------------
-        range_anxiety = self.range_anxiety
-
-        # ---------------------------------------------------------
-        # 8. Weighted adoption score
-        # ---------------------------------------------------------
-        adoption_score = (
-            p.economic_weight * economic_score
-            + p.charging_weight * charging_score
-            + p.environmental_weight * environmental_score
-            + p.peer_weight * peer_adoption_share
-            - p.range_anxiety_weight * range_anxiety
+        ev_cost = ev_tco(
+            purchase_price=max(p.ev_purchase_price - p.subsidy, 0.0),
+            electricity_price=p.electricity_price,
+            annual_mileage=self.annual_mileage,
+            kwh_per_km=p.ev_kwh_per_km,
+            maintenance_cost=p.ev_maintenance_cost,
+            years=p.tco_years,
+        )
+        ice_cost = ice_tco(
+            purchase_price=p.ice_purchase_price,
+            fuel_price=p.fuel_price,
+            annual_mileage=self.annual_mileage,
+            liters_per_km=p.ice_liters_per_km,
+            maintenance_cost=p.ice_maintenance_cost,
+            years=p.tco_years,
         )
 
+        tco_gap = ice_cost - ev_cost
+        affordability_score = min(self.income / max(ev_cost, 1.0), 1.0)
+        tco_score = economic_score(ev_cost, ice_cost)
+        economic_component = tco_score * (0.5 + self.price_sensitivity)
+        economic_component += 0.1 * affordability_score
+
+        charging_score = 0.7 * self.home_charging_access
+        charging_score += 0.3 * float(self.model.charging_access[x, y])
+        environmental_score = 0.5 * self.environmental_concern + 0.5 * self.pro_env
+        peer_adoption_share = self._peer_adoption_share()
+
+        adoption_score = (
+            p.economic_weight * economic_component
+            + p.charging_weight * charging_score
+            + p.environmental_weight * environmental_score
+            + p.peer_weight * peer_adoption_share * (0.5 + self.peer_sensitivity)
+            - p.range_anxiety_weight * self.range_anxiety
+        )
+
+        self.last_ev_tco = ev_cost
+        self.last_ice_tco = ice_cost
+        self.last_tco_gap = tco_gap
+        self.last_economic_score = economic_component
+        self.last_charging_score = charging_score
+        self.last_peer_adoption_share = peer_adoption_share
         self.last_adoption_score = adoption_score
 
-        # ---------------------------------------------------------
-        # 9. Decisão determinística
-        # ---------------------------------------------------------
         if adoption_score >= p.adoption_threshold:
             self.ev_adopted = True
+            self.vehicle_age = 0
 
+    def _peer_adoption_share(self) -> float:
+        if self.model.params.networks:
+            neighbours = list(self.model.network_neighbours(self))
+        else:
+            neighbours = self.model.grid.get_neighbors(
+                self.pos,
+                moore=True,
+                include_center=False,
+            )
+
+        if not neighbours:
+            return 0.0
+        return sum(bool(getattr(agent, "ev_adopted", False)) for agent in neighbours) / len(
+            neighbours
+        )
