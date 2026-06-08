@@ -11,20 +11,20 @@ from .model import AffordanceModelParams
 class EVParams(AffordanceModelParams):
     """Affordance model parameters plus EV-specific policy and cost inputs."""
 
-    width: int = 20
-    height: int = 20
-    max_steps: int = 1000
+    width: int = 201
+    height: int = 201
+    max_steps: int = 20440
 
     lower_bound_mean: float = 0.2
     lower_bound_sd: float = 0.05
     upper_bound_mean: float = 0.8
     upper_bound_sd: float = 0.05
 
-    initial_charging_coverage: float = 0.05
-    charger_expansion_rate: float = 0.2
-    charger_access_decay: float = 2.0
+    initial_charging_coverage: float = 0.0
+    charger_expansion_rate: float = 2.0
+    charger_access_decay: float = 1.0
 
-    subsidy: float = 0.0
+    subsidy: float = 8000.0
     fuel_price: float = 1.8
     electricity_price: float = 0.25
 
@@ -36,7 +36,7 @@ class EVParams(AffordanceModelParams):
     ice_maintenance_cost: float = 600.0
     tco_years: int = 8
 
-    adoption_threshold: float = 0.5
+    adoption_threshold: float = 0.34
     economic_weight: float = 0.25
     charging_weight: float = 0.25
     environmental_weight: float = 0.25

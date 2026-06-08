@@ -95,13 +95,13 @@ from affordance_mesa.ev_model import EVAdoptionModel
 from affordance_mesa.ev_params import EVParams
 
 params = EVParams(
-    width=20,
-    height=20,
+    width=201,
+    height=201,
     number_of_agents=100,
-    subsidy=3000,
-    initial_charging_coverage=0.05,
-    charger_expansion_rate=0.5,
-    adoption_threshold=0.5,
+    subsidy=8000,
+    initial_charging_coverage=0.0,
+    charger_expansion_rate=2.0,
+    adoption_threshold=0.34,
 )
 
 model = EVAdoptionModel(params, seed=42)
