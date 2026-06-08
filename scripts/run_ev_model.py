@@ -9,20 +9,20 @@ from affordance_mesa.ev_params import EVParams
 
 def run_model(steps=50, seed=42):
     # 1. Define EV model parameters
-    params = EVParams(
-        width=20,
-        height=20,
-        subsidy=3000,
-        fuel_price=1.8,
-        electricity_price=0.25,
-        charger_expansion_rate=0.02,
-        adoption_threshold=0.0,
-    )
+    params = EVParams()
+    params.width = 20
+    params.height = 20
+    params.number_of_agents = 200
+    params.subsidy = 3000
+    params.fuel_price = 1.8
+    params.electricity_price = 0.25
+    params.charger_expansion_rate = 0.5
+    params.adoption_threshold = 0.0
 
     # 2. Create model
-    model = EVAdoptionModel(params, seed=seed)
+    model = EVAdoptionModel(params=params, seed=seed)
 
-    # 3. run model
+    # 3. Run model
     for _ in range(steps):
         model.step()
 
@@ -36,6 +36,15 @@ def run_model(steps=50, seed=42):
 
     return model
 
-
 if __name__ == "__main__":
-    run_model()
+    model = run_model()
+
+
+
+
+
+
+
+
+
+
