@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from pandas.testing import assert_frame_equal
 
 from affordance_mesa.ev_agents import EVConsumerAgent
@@ -262,3 +263,91 @@ def test_same_seed_reproduces_home_positions():
     assert [agent.home_pos for agent in first.agent_list] == [
         agent.home_pos for agent in second.agent_list
     ]
+
+
+def test_extended_model_columns_present_and_in_range():
+    params = EVParams(width=10, height=10, number_of_agents=25)
+    model = EVAdoptionModel(params, seed=42)
+
+    model.run_model(15)
+
+    model_vars = model.datacollector.get_model_vars_dataframe()
+    new_columns = [
+        "mean_economic_score",
+        "mean_charging_score",
+        "mean_environmental_score",
+        "mean_peer_adoption_share",
+        "mean_range_anxiety_penalty",
+        "mean_ev_tco",
+        "mean_ice_tco",
+        "mean_vehicle_age",
+        "mean_income",
+        "mean_home_charging_access",
+    ]
+    assert all(column in model_vars.columns for column in new_columns)
+
+    last = model_vars.iloc[-1]
+    assert 0 <= last.mean_environmental_score <= 1
+    assert 0 <= last.mean_peer_adoption_share <= 1
+    assert 0 <= last.mean_range_anxiety_penalty <= params.range_anxiety_weight
+    assert last.mean_ev_tco >= 0
+    assert last.mean_ice_tco >= 0
+    assert last.mean_income >= 0
+    assert last.mean_vehicle_age >= 0
+    assert 0 <= last.mean_home_charging_access <= 1
+
+
+def test_extended_agent_columns_present():
+    params = EVParams(width=10, height=10, number_of_agents=25)
+    model = EVAdoptionModel(params, seed=42)
+
+    agent_vars = model.datacollector.get_agent_vars_dataframe()
+    new_columns = [
+        "last_economic_score",
+        "last_charging_score",
+        "last_environmental_score",
+        "last_peer_adoption_share",
+        "last_range_anxiety_penalty",
+        "last_ev_tco",
+        "last_ice_tco",
+        "vehicle_age",
+        "income",
+        "home_charging_access",
+        "has_evaluated_adoption",
+    ]
+
+    assert all(column in agent_vars.columns for column in new_columns)
+
+
+def test_means_average_only_evaluated_agents():
+    params = EVParams(width=8, height=8, number_of_agents=12)
+    model = EVAdoptionModel(params, seed=42)
+    agent0 = model.agent_list[0]
+
+    assert model.mean_ev_tco == 0.0
+
+    agent0.consider_ev_adoption()
+    model._update_ev_metrics()
+
+    assert model.mean_economic_score == pytest.approx(agent0.last_economic_score)
+    assert model.mean_environmental_score == pytest.approx(agent0.last_environmental_score)
+
+
+def test_means_match_manual_computation():
+    params = EVParams(width=10, height=10, number_of_agents=25)
+    model = EVAdoptionModel(params, seed=42)
+
+    model.run_model(10)
+
+    evaluated_agents = [
+        agent for agent in model.agent_list if agent.has_evaluated_adoption
+    ]
+    assert evaluated_agents
+    manual_mean_ev_tco = np.mean([agent.last_ev_tco for agent in evaluated_agents])
+    manual_mean_income = np.mean([agent.income for agent in model.agent_list])
+    last = model.datacollector.get_model_vars_dataframe().iloc[-1]
+
+    assert model.mean_ev_tco == pytest.approx(manual_mean_ev_tco)
+    assert model.mean_income == pytest.approx(manual_mean_income)
+    assert last.mean_ev_tco == pytest.approx(manual_mean_ev_tco)
+    assert last.mean_income == pytest.approx(manual_mean_income)

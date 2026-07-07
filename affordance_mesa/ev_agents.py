@@ -55,10 +55,13 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_adoption_score = 0.0
         self.last_charging_score = 0.0
         self.last_economic_score = 0.0
+        self.last_environmental_score = 0.0
         self.last_peer_adoption_share = 0.0
+        self.last_range_anxiety_penalty = 0.0
         self.last_tco_gap = 0.0
         self.last_ev_tco = 0.0
         self.last_ice_tco = 0.0
+        self.has_evaluated_adoption = False
 
     def step(self) -> None:
         """Run original affordance behaviour, then the EV decision layer."""
@@ -114,8 +117,11 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_tco_gap = tco_gap
         self.last_economic_score = economic_component
         self.last_charging_score = charging_score
+        self.last_environmental_score = environmental_score
         self.last_peer_adoption_share = peer_adoption_share
+        self.last_range_anxiety_penalty = p.range_anxiety_weight * self.range_anxiety
         self.last_adoption_score = adoption_score
+        self.has_evaluated_adoption = True
 
         if adoption_score >= p.adoption_threshold:
             self.ev_adopted = True

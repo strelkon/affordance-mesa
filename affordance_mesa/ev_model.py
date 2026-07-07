@@ -32,6 +32,16 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.mean_adoption_score = 0.0
         self.mean_charging_access = 0.0
         self.mean_tco_gap = 0.0
+        self.mean_economic_score = 0.0
+        self.mean_charging_score = 0.0
+        self.mean_environmental_score = 0.0
+        self.mean_peer_adoption_share = 0.0
+        self.mean_range_anxiety_penalty = 0.0
+        self.mean_ev_tco = 0.0
+        self.mean_ice_tco = 0.0
+        self.mean_vehicle_age = 0.0
+        self.mean_income = 0.0
+        self.mean_home_charging_access = 0.0
 
         super().__init__(params=params or EVParams(), seed=seed)
 
@@ -162,6 +172,16 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "mean_adoption_score": "mean_adoption_score",
                 "mean_charging_access": "mean_charging_access",
                 "mean_tco_gap": "mean_tco_gap",
+                "mean_economic_score": "mean_economic_score",
+                "mean_charging_score": "mean_charging_score",
+                "mean_environmental_score": "mean_environmental_score",
+                "mean_peer_adoption_share": "mean_peer_adoption_share",
+                "mean_range_anxiety_penalty": "mean_range_anxiety_penalty",
+                "mean_ev_tco": "mean_ev_tco",
+                "mean_ice_tco": "mean_ice_tco",
+                "mean_vehicle_age": "mean_vehicle_age",
+                "mean_income": "mean_income",
+                "mean_home_charging_access": "mean_home_charging_access",
                 "charger_count": lambda model: len(model.chargers),
             },
             agent_reporters={
@@ -172,6 +192,17 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "ev_adopted": "ev_adopted",
                 "last_adoption_score": "last_adoption_score",
                 "last_tco_gap": "last_tco_gap",
+                "last_economic_score": "last_economic_score",
+                "last_charging_score": "last_charging_score",
+                "last_environmental_score": "last_environmental_score",
+                "last_peer_adoption_share": "last_peer_adoption_share",
+                "last_range_anxiety_penalty": "last_range_anxiety_penalty",
+                "last_ev_tco": "last_ev_tco",
+                "last_ice_tco": "last_ice_tco",
+                "vehicle_age": "vehicle_age",
+                "income": "income",
+                "home_charging_access": "home_charging_access",
+                "has_evaluated_adoption": "has_evaluated_adoption",
             },
         )
 
@@ -237,20 +268,73 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.mean_charging_access = float(np.mean(self.charging_access))
 
     def _update_ev_metrics(self) -> None:
+        """Update EV adoption metrics.
+
+        Decision-telemetry means average only over agents with
+        ``has_evaluated_adoption == True`` and are 0.0 when no agent has
+        evaluated yet. Trait and state means average over all agents.
+        """
+
         adopted = [agent.ev_adopted for agent in self.agent_list]
-        scores = [agent.last_adoption_score for agent in self.agent_list]
-        tco_gaps = [
-            agent.last_tco_gap
-            for agent in self.agent_list
-            if agent.last_ev_tco and agent.last_ice_tco
+        evaluated_agents = [
+            agent for agent in self.agent_list if agent.has_evaluated_adoption
         ]
 
         n_agents = len(self.agent_list)
         self.ev_adoption_count = sum(adopted)
         self.ev_adoption_share = self.ev_adoption_count / n_agents if n_agents else 0.0
-        self.mean_adoption_score = float(np.mean(scores)) if scores else 0.0
-        self.mean_charging_access = float(np.mean(self.charging_access))
-        self.mean_tco_gap = float(np.mean(tco_gaps)) if tco_gaps else 0.0
+
+        if evaluated_agents:
+            self.mean_adoption_score = float(
+                np.mean([agent.last_adoption_score for agent in evaluated_agents])
+            )
+            self.mean_tco_gap = float(
+                np.mean([agent.last_tco_gap for agent in evaluated_agents])
+            )
+            self.mean_economic_score = float(
+                np.mean([agent.last_economic_score for agent in evaluated_agents])
+            )
+            self.mean_charging_score = float(
+                np.mean([agent.last_charging_score for agent in evaluated_agents])
+            )
+            self.mean_environmental_score = float(
+                np.mean([agent.last_environmental_score for agent in evaluated_agents])
+            )
+            self.mean_peer_adoption_share = float(
+                np.mean([agent.last_peer_adoption_share for agent in evaluated_agents])
+            )
+            self.mean_range_anxiety_penalty = float(
+                np.mean([agent.last_range_anxiety_penalty for agent in evaluated_agents])
+            )
+            self.mean_ev_tco = float(
+                np.mean([agent.last_ev_tco for agent in evaluated_agents])
+            )
+            self.mean_ice_tco = float(
+                np.mean([agent.last_ice_tco for agent in evaluated_agents])
+            )
+        else:
+            self.mean_adoption_score = 0.0
+            self.mean_tco_gap = 0.0
+            self.mean_economic_score = 0.0
+            self.mean_charging_score = 0.0
+            self.mean_environmental_score = 0.0
+            self.mean_peer_adoption_share = 0.0
+            self.mean_range_anxiety_penalty = 0.0
+            self.mean_ev_tco = 0.0
+            self.mean_ice_tco = 0.0
+
+        if n_agents:
+            self.mean_vehicle_age = float(
+                np.mean([agent.vehicle_age for agent in self.agent_list])
+            )
+            self.mean_income = float(np.mean([agent.income for agent in self.agent_list]))
+            self.mean_home_charging_access = float(
+                np.mean([agent.home_charging_access for agent in self.agent_list])
+            )
+        else:
+            self.mean_vehicle_age = 0.0
+            self.mean_income = 0.0
+            self.mean_home_charging_access = 0.0
 
     def step(self) -> None:
         self._expand_charging_infrastructure()
