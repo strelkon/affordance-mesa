@@ -68,6 +68,9 @@ class EVParams(AffordanceModelParams):
     range_anxiety_max: float = 1.0
     peer_sensitivity_min: float = 0.0
     peer_sensitivity_max: float = 1.0
+    social_diffusion: bool = False
+    peer_range_anxiety_relief: float = 0.02
+    peer_concern_gain: float = 0.01
 
     @classmethod
     def from_scenario(cls, name, **overrides):

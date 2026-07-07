@@ -42,6 +42,8 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.mean_vehicle_age = 0.0
         self.mean_income = 0.0
         self.mean_home_charging_access = 0.0
+        self.mean_range_anxiety = 0.0
+        self.mean_environmental_concern = 0.0
 
         super().__init__(params=params or EVParams(), seed=seed)
 
@@ -217,6 +219,8 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "mean_vehicle_age": "mean_vehicle_age",
                 "mean_income": "mean_income",
                 "mean_home_charging_access": "mean_home_charging_access",
+                "mean_range_anxiety": "mean_range_anxiety",
+                "mean_environmental_concern": "mean_environmental_concern",
                 "charger_count": lambda model: len(model.chargers),
             },
             agent_reporters={
@@ -238,6 +242,8 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "vehicle_age": "vehicle_age",
                 "income": "income",
                 "home_charging_access": "home_charging_access",
+                "range_anxiety": "range_anxiety",
+                "environmental_concern": "environmental_concern",
                 "has_evaluated_adoption": "has_evaluated_adoption",
             },
         )
@@ -438,10 +444,18 @@ class EVAdoptionModel(AffordanceLandscapeModel):
             self.mean_home_charging_access = float(
                 np.mean([agent.home_charging_access for agent in self.agent_list])
             )
+            self.mean_range_anxiety = float(
+                np.mean([agent.range_anxiety for agent in self.agent_list])
+            )
+            self.mean_environmental_concern = float(
+                np.mean([agent.environmental_concern for agent in self.agent_list])
+            )
         else:
             self.mean_vehicle_age = 0.0
             self.mean_income = 0.0
             self.mean_home_charging_access = 0.0
+            self.mean_range_anxiety = 0.0
+            self.mean_environmental_concern = 0.0
 
     def step(self) -> None:
         self._expand_charging_infrastructure()

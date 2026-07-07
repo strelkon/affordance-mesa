@@ -650,3 +650,95 @@ def test_unknown_charger_expansion_mode_raises():
 
     with pytest.raises(ValueError):
         model._expand_charging_infrastructure()
+
+
+def test_social_diffusion_off_by_default_and_traits_static():
+    assert EVParams().social_diffusion is False
+    params = EVParams(width=8, height=8, number_of_agents=15)
+    model = EVAdoptionModel(params, seed=42)
+    traits = [
+        (agent.range_anxiety, agent.environmental_concern)
+        for agent in model.agent_list
+    ]
+
+    model.run_model(5)
+
+    assert [
+        (agent.range_anxiety, agent.environmental_concern)
+        for agent in model.agent_list
+    ] == traits
+
+
+def test_social_diffusion_updates_perceptions_near_adopters():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        social_diffusion=True,
+        initial_ev_share=0.5,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    candidates = [
+        agent
+        for agent in model.agent_list
+        if not agent.ev_adopted
+        and agent._peer_adoption_share() > 0
+        and (
+            agent.range_anxiety > params.range_anxiety_min
+            or agent.environmental_concern < params.environmental_concern_max
+        )
+    ]
+    assert candidates
+    agent = candidates[0]
+    range_anxiety = agent.range_anxiety
+    environmental_concern = agent.environmental_concern
+
+    model.run_model(3)
+
+    assert (
+        agent.range_anxiety < range_anxiety
+        or agent.range_anxiety == params.range_anxiety_min
+    )
+    assert (
+        agent.environmental_concern > environmental_concern
+        or agent.environmental_concern == params.environmental_concern_max
+    )
+
+
+def test_social_diffusion_respects_bounds():
+    params = EVParams(
+        width=8,
+        height=8,
+        number_of_agents=12,
+        social_diffusion=True,
+        initial_ev_share=1.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    agent.range_anxiety = params.range_anxiety_min
+    agent.environmental_concern = params.environmental_concern_max
+
+    agent._diffuse_perceptions()
+
+    assert agent.range_anxiety == params.range_anxiety_min
+    assert agent.environmental_concern == params.environmental_concern_max
+
+
+def test_social_diffusion_same_seed_reproducible():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        social_diffusion=True,
+        initial_ev_share=0.3,
+    )
+    first = EVAdoptionModel(params, seed=5)
+    second = EVAdoptionModel(params, seed=5)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )

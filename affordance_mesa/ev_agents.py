@@ -70,6 +70,9 @@ class EVConsumerAgent(ConsumerAgent):
         super().step()
         self.vehicle_age += 1
 
+        if self.model.params.social_diffusion:
+            self._diffuse_perceptions()
+
         if self.vehicle_age >= self.replacement_interval and not self.ev_adopted:
             self.consider_ev_adoption()
 
@@ -145,6 +148,28 @@ class EVConsumerAgent(ConsumerAgent):
             self.last_adoption_probability = prob
             return self.random.random() < prob
         raise ValueError(f"Unknown adoption_rule {rule!r}")
+
+    def _diffuse_perceptions(self) -> None:
+        """Visible EV adoption among peers updates perceived EV salience.
+
+        Residential or network peer exposure reduces perceived range anxiety
+        and raises environmental salience; this is social learning acting on
+        perceptions, not just on the adoption-score peer term.
+        """
+
+        p = self.model.params
+        share = self._peer_adoption_share()
+        if share <= 0.0:
+            return
+
+        self.range_anxiety = max(
+            self.range_anxiety - p.peer_range_anxiety_relief * share,
+            p.range_anxiety_min,
+        )
+        self.environmental_concern = min(
+            self.environmental_concern + p.peer_concern_gain * share,
+            p.environmental_concern_max,
+        )
 
     def _peer_adoption_share(self) -> float:
         if self.model.params.networks:
