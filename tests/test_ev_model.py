@@ -1,3 +1,4 @@
+import pytest
 from pandas.testing import assert_frame_equal
 
 from affordance_mesa.ev_agents import EVConsumerAgent
@@ -195,3 +196,69 @@ def test_charging_access_monotonicity_with_same_seed():
 
     assert model_high.mean_charging_access >= model_low.mean_charging_access
     assert model_high.ev_adoption_share >= model_low.ev_adoption_share
+
+
+def test_home_pos_is_set_and_fixed_after_movement():
+    params = EVParams(width=8, height=8, number_of_agents=10)
+    model = EVAdoptionModel(params, seed=42)
+
+    home_positions = [agent.home_pos for agent in model.agent_list]
+
+    assert all(home_pos is not None for home_pos in home_positions)
+    assert all(0 <= x < params.width and 0 <= y < params.height for x, y in home_positions)
+
+    model.run_model(5)
+
+    assert [agent.home_pos for agent in model.agent_list] == home_positions
+    assert any(agent.pos != agent.home_pos for agent in model.agent_list)
+
+
+def test_charging_score_uses_home_not_current_position():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=1,
+        charger_expansion_rate=0.0,
+        initial_charging_coverage=0.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    agent.home_charging_access = 0.0
+    model.charging_access[:, :] = 0.0
+    model.charging_access[agent.home_pos] = 1.0
+
+    cell_other_than_home = (agent.home_pos[0], (agent.home_pos[1] + 1) % params.height)
+    model.grid.move_agent(agent, cell_other_than_home)
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_charging_score == pytest.approx(0.3)
+
+
+def test_peer_share_uses_residential_neighbours():
+    params = EVParams(width=8, height=8, number_of_agents=3, networks=False)
+    model = EVAdoptionModel(params, seed=42)
+    a, b, c = model.agent_list
+
+    b.home_pos = ((a.home_pos[0] + 1) % params.width, a.home_pos[1])
+    c.home_pos = ((a.home_pos[0] + 3) % params.width, (a.home_pos[1] + 3) % params.height)
+    model._agents_by_home.clear()
+    for agent in model.agent_list:
+        model._agents_by_home.setdefault(agent.home_pos, []).append(agent)
+
+    b.ev_adopted = True
+    model.grid.move_agent(a, ((a.home_pos[0] + 4) % params.width, a.home_pos[1]))
+    model.grid.move_agent(b, ((b.home_pos[0] + 4) % params.width, b.home_pos[1]))
+    model.grid.move_agent(c, ((a.home_pos[0] + 1) % params.width, (a.home_pos[1] + 1) % params.height))
+
+    assert a._peer_adoption_share() == pytest.approx(1.0)
+
+
+def test_same_seed_reproduces_home_positions():
+    params = EVParams(width=8, height=8, number_of_agents=12)
+    first = EVAdoptionModel(params, seed=123)
+    second = EVAdoptionModel(params, seed=123)
+
+    assert [agent.home_pos for agent in first.agent_list] == [
+        agent.home_pos for agent in second.agent_list
+    ]

@@ -25,6 +25,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
     def __init__(self, params: EVParams | None = None, seed: int | None = None):
         self.chargers: list[tuple[int, int]] = []
         self._charger_sites: set[tuple[int, int]] = set()
+        self._agents_by_home: dict[tuple[int, int], list] = {}
         self.charging_access: np.ndarray
         self.ev_adoption_count = 0
         self.ev_adoption_share = 0.0
@@ -92,7 +93,27 @@ class EVAdoptionModel(AffordanceLandscapeModel):
             x = self.random.randrange(self.params.width)
             y = self.random.randrange(self.params.height)
             self.grid.place_agent(agent, (x, y))
+            agent.home_pos = (x, y)
+            self._agents_by_home.setdefault((x, y), []).append(agent)
             self.agent_list.append(agent)
+
+    def home_neighbours(self, agent: EVConsumerAgent) -> list[EVConsumerAgent]:
+        """Residential neighbourhood used for EV peer effects.
+
+        Deliberately not ``grid.get_neighbors``, which would count transient
+        passers-by at their current positions.
+        """
+
+        positions = [agent.home_pos]
+        positions.extend(self.moore_neighbour_positions(agent.home_pos))
+        neighbours: list[EVConsumerAgent] = []
+        for pos in positions:
+            neighbours.extend(
+                home_agent
+                for home_agent in self._agents_by_home.get(pos, [])
+                if home_agent is not agent
+            )
+        return neighbours
 
     def _sample_bounds(self) -> tuple[float, float]:
         lower = self._sample_uniform(0.0, 1.0, self.params.lower_bound_mean, self.params.lower_bound_sd)

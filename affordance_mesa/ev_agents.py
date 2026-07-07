@@ -7,7 +7,12 @@ from .ev_costs import economic_score, ev_tco, ice_tco
 
 
 class EVConsumerAgent(ConsumerAgent):
-    """Consumer agent with an additional vehicle replacement decision."""
+    """Consumer agent with an additional vehicle replacement decision.
+
+    ``pos`` represents movement through the abstract affordance landscape
+    inherited from ``ConsumerAgent``. ``home_pos`` is the fixed residential
+    location used for EV charging access and spatial peer exposure.
+    """
 
     def __init__(
         self,
@@ -45,6 +50,7 @@ class EVConsumerAgent(ConsumerAgent):
         self.range_anxiety = range_anxiety
         self.peer_sensitivity = peer_sensitivity
         self.ev_adopted = False
+        self.home_pos: tuple[int, int] | None = None
 
         self.last_adoption_score = 0.0
         self.last_charging_score = 0.0
@@ -65,7 +71,7 @@ class EVConsumerAgent(ConsumerAgent):
 
     def consider_ev_adoption(self) -> None:
         p = self.model.params
-        x, y = self.pos
+        home_x, home_y = self.home_pos
 
         ev_cost = ev_tco(
             purchase_price=max(p.ev_purchase_price - p.subsidy, 0.0),
@@ -91,7 +97,7 @@ class EVConsumerAgent(ConsumerAgent):
         economic_component += 0.1 * affordability_score
 
         charging_score = 0.7 * self.home_charging_access
-        charging_score += 0.3 * float(self.model.charging_access[x, y])
+        charging_score += 0.3 * float(self.model.charging_access[home_x, home_y])
         environmental_score = 0.5 * self.environmental_concern + 0.5 * self.pro_env
         peer_adoption_share = self._peer_adoption_share()
 
@@ -119,11 +125,7 @@ class EVConsumerAgent(ConsumerAgent):
         if self.model.params.networks:
             neighbours = list(self.model.network_neighbours(self))
         else:
-            neighbours = self.model.grid.get_neighbors(
-                self.pos,
-                moore=True,
-                include_center=False,
-            )
+            neighbours = self.model.home_neighbours(self)
 
         if not neighbours:
             return 0.0
