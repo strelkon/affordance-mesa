@@ -37,6 +37,8 @@ class EVParams(AffordanceModelParams):
     tco_years: int = 8
 
     adoption_threshold: float = 0.34
+    adoption_rule: str = "deterministic"
+    adoption_temperature: float = 0.05
     economic_weight: float = 0.25
     charging_weight: float = 0.25
     environmental_weight: float = 0.25

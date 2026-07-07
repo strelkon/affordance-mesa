@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from .agents import ConsumerAgent
-from .ev_costs import economic_score, ev_tco, ice_tco
+from .ev_costs import adoption_probability, economic_score, ev_tco, ice_tco
 
 
 class EVConsumerAgent(ConsumerAgent):
@@ -56,6 +56,7 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_charging_score = 0.0
         self.last_economic_score = 0.0
         self.last_environmental_score = 0.0
+        self.last_adoption_probability = 0.0
         self.last_peer_adoption_share = 0.0
         self.last_range_anxiety_penalty = 0.0
         self.last_tco_gap = 0.0
@@ -123,9 +124,27 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_adoption_score = adoption_score
         self.has_evaluated_adoption = True
 
-        if adoption_score >= p.adoption_threshold:
+        if self._decide_adoption(adoption_score):
             self.ev_adopted = True
             self.vehicle_age = 0
+
+    def _decide_adoption(self, score):
+        p = self.model.params
+        rule = p.adoption_rule
+
+        if rule == "deterministic":
+            decision = score >= p.adoption_threshold
+            self.last_adoption_probability = 1.0 if decision else 0.0
+            return decision
+        if rule == "logistic":
+            prob = adoption_probability(
+                score,
+                p.adoption_threshold,
+                p.adoption_temperature,
+            )
+            self.last_adoption_probability = prob
+            return self.random.random() < prob
+        raise ValueError(f"Unknown adoption_rule {rule!r}")
 
     def _peer_adoption_share(self) -> float:
         if self.model.params.networks:

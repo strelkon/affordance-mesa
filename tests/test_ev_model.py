@@ -3,6 +3,7 @@ import numpy as np
 from pandas.testing import assert_frame_equal
 
 from affordance_mesa.ev_agents import EVConsumerAgent
+from affordance_mesa.ev_costs import adoption_probability
 from affordance_mesa.ev_model import EVAdoptionModel
 from affordance_mesa.ev_params import EVParams
 from affordance_mesa.model import AffordanceLandscapeModel
@@ -351,3 +352,100 @@ def test_means_match_manual_computation():
     assert model.mean_income == pytest.approx(manual_mean_income)
     assert last.mean_ev_tco == pytest.approx(manual_mean_ev_tco)
     assert last.mean_income == pytest.approx(manual_mean_income)
+
+
+def test_default_rule_is_deterministic_and_draws_no_randomness():
+    assert EVParams().adoption_rule == "deterministic"
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    state = model.random.getstate()
+
+    agent._decide_adoption(0.9)
+    agent._decide_adoption(0.0)
+
+    assert model.random.getstate() == state
+    assert agent.last_adoption_probability in (0.0, 1.0)
+
+
+def test_deterministic_same_seed_dataframe_reproducible():
+    params = EVParams(
+        width=8,
+        height=8,
+        number_of_agents=15,
+        adoption_rule="deterministic",
+    )
+    first = EVAdoptionModel(params, seed=11)
+    second = EVAdoptionModel(params, seed=11)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )
+
+
+def test_logistic_low_temperature_approximates_deterministic():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        adoption_rule="logistic",
+        adoption_temperature=1e-9,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    threshold = model.params.adoption_threshold
+
+    for _ in range(20):
+        assert agent._decide_adoption(threshold + 0.1) is True
+        assert agent._decide_adoption(threshold - 0.1) is False
+
+
+def test_adoption_probability_monotonic_in_score():
+    scores = np.linspace(-1, 2, 31)
+    probabilities = [
+        adoption_probability(score, 0.34, 0.05)
+        for score in scores
+    ]
+
+    assert all(
+        current <= next_value
+        for current, next_value in zip(probabilities[:-1], probabilities[1:], strict=True)
+    )
+    assert adoption_probability(0.34, 0.34, 0.05) == pytest.approx(0.5)
+    assert adoption_probability(1e6, 0.34, 0.05) == 1.0
+    assert adoption_probability(-1e6, 0.34, 0.05) == 0.0
+    assert adoption_probability(0.35, 0.34, 0.0) == 1.0
+    assert adoption_probability(0.33, 0.34, 0.0) == 0.0
+
+
+def test_logistic_same_seed_reproducible():
+    params = EVParams(
+        width=8,
+        height=8,
+        number_of_agents=20,
+        adoption_rule="logistic",
+    )
+    first = EVAdoptionModel(params, seed=7)
+    second = EVAdoptionModel(params, seed=7)
+
+    first.run_model(20)
+    second.run_model(20)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )
+
+
+def test_unknown_adoption_rule_raises():
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    model.params.adoption_rule = "bogus"
+
+    with pytest.raises(ValueError):
+        agent._decide_adoption(0.5)

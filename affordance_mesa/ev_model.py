@@ -191,6 +191,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "last_behaviour": "last_behaviour",
                 "ev_adopted": "ev_adopted",
                 "last_adoption_score": "last_adoption_score",
+                "last_adoption_probability": "last_adoption_probability",
                 "last_tco_gap": "last_tco_gap",
                 "last_economic_score": "last_economic_score",
                 "last_charging_score": "last_charging_score",
