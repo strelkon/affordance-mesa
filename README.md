@@ -117,11 +117,15 @@ Alternatively, install the repository in editable mode from a notebook:
 %pip install -e /Users/strelkon/Library/CloudStorage/OneDrive-IIASA/YSSP/26_Jorge
 ```
 
-## Launch the Solara dashboard
+## Launch the EV Solara dashboard
 
 ```bash
 solara run affordance_mesa/solara_app.py --port 8765
 ```
+
+The dashboard runs the EV adoption extension. It exposes EV policy controls,
+charging infrastructure controls, selected affordance-core controls, and plots
+EV adoption, charging access, TCO gap, and original affordance behaviour shares.
 
 ## Main files
 
@@ -132,7 +136,7 @@ solara run affordance_mesa/solara_app.py --port 8765
 - `affordance_mesa/ev_agents.py` — EV-capable consumer agents.
 - `affordance_mesa/ev_params.py` — EV extension parameters.
 - `affordance_mesa/ev_costs.py` — pure EV/ICE total-cost-of-ownership helpers.
-- `affordance_mesa/solara_app.py` — browser dashboard for stepping and plotting the model.
+- `affordance_mesa/solara_app.py` — browser dashboard for stepping and plotting the EV extension.
 - `scripts/run_model.py` — command-line runner for one simulation.
 - `scripts/run_ev_model.py` — command-line runner for the EV adoption extension.
 - `scripts/run_experiments.py` — simple BehaviorSpace-style parameter sweep.
