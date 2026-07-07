@@ -11,7 +11,7 @@ import solara
 from matplotlib.figure import Figure
 
 from affordance_mesa.ev_model import EVAdoptionModel
-from affordance_mesa.ev_params import EVParams
+from affordance_mesa.ev_params import EVParams, SCENARIOS
 
 PLAY_INTERVAL_SECONDS = 0.08
 MAX_LINKS_DRAWN = 1500
@@ -372,6 +372,7 @@ def Page():
     height = solara.use_reactive(DEFAULT_PARAMS.height)
     max_steps = solara.use_reactive(1000)
     seed = solara.use_reactive(42)
+    scenario = solara.use_reactive("custom")
 
     pro_amount = solara.use_reactive(DEFAULT_PARAMS.pro_amount)
     initial_pro = solara.use_reactive(DEFAULT_PARAMS.initial_pro)
@@ -442,6 +443,17 @@ def Page():
         model.set(EVAdoptionModel(build_params(), seed=int(seed.value)))
         render_key.set(render_key.value + 1)
 
+    def apply_scenario() -> None:
+        if scenario.value != "custom":
+            p = EVParams.from_scenario(scenario.value)
+            number_of_agents.set(p.number_of_agents)
+            subsidy.set(p.subsidy)
+            fuel_price.set(p.fuel_price)
+            electricity_price.set(p.electricity_price)
+            initial_charging_coverage.set(p.initial_charging_coverage)
+            charger_expansion_rate.set(p.charger_expansion_rate)
+            setup_model()
+
     def step_once() -> None:
         if not model.value.running:
             return
@@ -504,6 +516,16 @@ def Page():
                         color="green",
                         style={"color": "white"},
                     )
+
+                with solara.Div(classes=["aff-control-block"]):
+                    ControlSection("Scenario")
+                    solara.Select(
+                        "Scenario",
+                        value=scenario,
+                        values=["custom"] + sorted(SCENARIOS),
+                        dense=True,
+                    )
+                    solara.Button("Apply scenario", on_click=apply_scenario)
 
                 with solara.Div(classes=["aff-control-block"]):
                     ControlSection("Run")

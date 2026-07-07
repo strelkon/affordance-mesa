@@ -38,3 +38,9 @@ def test_solara_controls_build_ev_params():
     assert isinstance(params, EVParams)
     assert params.subsidy == 8000.0
     assert params.adoption_threshold == 0.34
+
+
+def test_scenarios_importable_from_solara_app():
+    from affordance_mesa import solara_app
+
+    assert "subsidy" in solara_app.SCENARIOS

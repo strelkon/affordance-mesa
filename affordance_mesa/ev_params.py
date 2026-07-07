@@ -61,3 +61,26 @@ class EVParams(AffordanceModelParams):
     range_anxiety_max: float = 1.0
     peer_sensitivity_min: float = 0.0
     peer_sensitivity_max: float = 1.0
+
+    @classmethod
+    def from_scenario(cls, name, **overrides):
+        if name not in SCENARIOS:
+            raise ValueError(f"Unknown scenario {name!r}; valid: {sorted(SCENARIOS)}")
+        return cls(**{**SCENARIOS[name], **overrides})
+
+
+# Provisional proposals relative to the defaults; users can tune every value.
+SCENARIOS: dict[str, dict] = {
+    "colleague_baseline": {"number_of_agents": 100},
+    "no_policy": {
+        "subsidy": 0.0,
+        "charger_expansion_rate": 0.0,
+        "initial_charging_coverage": 0.0,
+    },
+    "subsidy": {"subsidy": 12000.0},
+    "fuel_price": {"fuel_price": 2.6},
+    "charging_expansion": {
+        "charger_expansion_rate": 6.0,
+        "initial_charging_coverage": 0.02,
+    },
+}
