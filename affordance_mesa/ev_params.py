@@ -36,6 +36,8 @@ class EVParams(AffordanceModelParams):
     ice_maintenance_cost: float = 600.0
     tco_years: int = 8
 
+    initial_ev_share: float = 0.0
+    initial_ev_clustered: bool = False
     adoption_threshold: float = 0.34
     adoption_rule: str = "deterministic"
     adoption_temperature: float = 0.05

@@ -449,3 +449,108 @@ def test_unknown_adoption_rule_raises():
 
     with pytest.raises(ValueError):
         agent._decide_adoption(0.5)
+
+
+def test_initial_ev_share_defaults_to_zero_with_no_rng_cost():
+    assert EVParams().initial_ev_share == 0.0
+    assert EVParams().initial_ev_clustered is False
+
+    params = EVParams(width=5, height=5, number_of_agents=5)
+    model = EVAdoptionModel(params, seed=42)
+
+    assert not any(agent.ev_adopted for agent in model.agent_list)
+
+    state = model.random.getstate()
+    model._assign_initial_adopters()
+
+    assert model.random.getstate() == state
+
+
+def test_initial_ev_share_sets_expected_count_at_row_zero():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        initial_ev_share=0.3,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    adopted_agents = [agent for agent in model.agent_list if agent.ev_adopted]
+    first_row = model.datacollector.get_model_vars_dataframe().iloc[0]
+
+    assert len(adopted_agents) == 6
+    assert all(agent.vehicle_age == 0 for agent in adopted_agents)
+    assert first_row.ev_adoption_share == pytest.approx(0.3)
+
+
+def test_initial_ev_share_full_adoption_clamped():
+    full_params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=5,
+        initial_ev_share=1.0,
+    )
+    out_of_range_params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=5,
+        initial_ev_share=5.0,
+    )
+
+    full_model = EVAdoptionModel(full_params, seed=42)
+    out_of_range_model = EVAdoptionModel(out_of_range_params, seed=42)
+
+    assert all(agent.ev_adopted for agent in full_model.agent_list)
+    assert all(agent.ev_adopted for agent in out_of_range_model.agent_list)
+
+
+def test_clustered_initial_adopters_are_spatially_close():
+    params = EVParams(
+        width=20,
+        height=20,
+        number_of_agents=40,
+        initial_ev_share=0.25,
+        initial_ev_clustered=True,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    adopter_positions = [
+        agent.home_pos for agent in model.agent_list if agent.ev_adopted
+    ]
+    all_positions = [agent.home_pos for agent in model.agent_list]
+
+    def mean_pairwise_distance(positions):
+        distances = [
+            model._torus_manhattan(a, b)
+            for i, a in enumerate(positions)
+            for b in positions[i + 1 :]
+        ]
+        return float(np.mean(distances))
+
+    assert mean_pairwise_distance(adopter_positions) < mean_pairwise_distance(all_positions)
+
+
+def test_initial_adopters_same_seed_reproducible():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        initial_ev_share=0.4,
+    )
+    first = EVAdoptionModel(params, seed=9)
+    second = EVAdoptionModel(params, seed=9)
+
+    first_adopted_homes = [
+        agent.home_pos for agent in first.agent_list if agent.ev_adopted
+    ]
+    second_adopted_homes = [
+        agent.home_pos for agent in second.agent_list if agent.ev_adopted
+    ]
+
+    assert first_adopted_homes == second_adopted_homes
+
+    first.run_model(5)
+    second.run_model(5)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )

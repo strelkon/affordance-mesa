@@ -46,6 +46,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         super().__init__(params=params or EVParams(), seed=seed)
 
         self.ev_agents = self.agent_list
+        self._assign_initial_adopters()
         self.charging_access = np.zeros((self.params.width, self.params.height), dtype=float)
         self._create_initial_chargers()
         self._update_charging_access()
@@ -124,6 +125,40 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 if home_agent is not agent
             )
         return neighbours
+
+    def _assign_initial_adopters(self) -> None:
+        """Represent an observed baseline EV market at t=0 for calibration/scenario starts."""
+
+        share = min(max(float(self.params.initial_ev_share), 0.0), 1.0)
+        if share <= 0.0 or not self.agent_list:
+            return
+
+        n = min(round(share * len(self.agent_list)), len(self.agent_list))
+        if n <= 0:
+            return
+
+        if not self.params.initial_ev_clustered:
+            adopters = self.random.sample(self.agent_list, n)
+        else:
+            seed_agent = self.random.choice(self.agent_list)
+            adopters = sorted(
+                self.agent_list,
+                key=lambda agent: self._torus_manhattan(
+                    agent.home_pos,
+                    seed_agent.home_pos,
+                ),
+            )[:n]
+
+        for agent in adopters:
+            agent.ev_adopted = True
+            agent.vehicle_age = 0
+
+    def _torus_manhattan(self, a: tuple[int, int], b: tuple[int, int]) -> int:
+        dx = abs(a[0] - b[0])
+        dx = min(dx, self.params.width - dx)
+        dy = abs(a[1] - b[1])
+        dy = min(dy, self.params.height - dy)
+        return dx + dy
 
     def _sample_bounds(self) -> tuple[float, float]:
         lower = self._sample_uniform(0.0, 1.0, self.params.lower_bound_mean, self.params.lower_bound_sd)
