@@ -22,6 +22,9 @@ class EVParams(AffordanceModelParams):
 
     initial_charging_coverage: float = 0.0
     charger_expansion_rate: float = 2.0
+    charger_expansion_mode: str = "exogenous"
+    demand_expansion_gain: float = 4.0
+    demand_radius: int = 2
     charger_access_decay: float = 1.0
 
     subsidy: float = 8000.0

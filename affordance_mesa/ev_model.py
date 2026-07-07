@@ -243,15 +243,86 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         )
 
     def _expand_charging_infrastructure(self) -> None:
-        rate = max(float(self.params.charger_expansion_rate), 0.0)
-        n_new = int(rate)
-        fractional = rate - n_new
-        if self.random.random() < fractional:
-            n_new += 1
+        mode = self.params.charger_expansion_mode
+        if mode == "exogenous":
+            rate = max(float(self.params.charger_expansion_rate), 0.0)
+            n_new = int(rate)
+            fractional = rate - n_new
+            if self.random.random() < fractional:
+                n_new += 1
 
-        if n_new > 0:
-            self._add_random_chargers(n_new)
-            self._update_charging_access()
+            if n_new > 0:
+                self._add_random_chargers(n_new)
+                self._update_charging_access()
+            return
+
+        if mode == "demand":
+            expected = (
+                max(float(self.params.charger_expansion_rate), 0.0)
+                * float(self.params.demand_expansion_gain)
+                * self.ev_adoption_share
+            )
+            if expected == 0.0:
+                return
+
+            n_new = int(expected)
+            fractional = expected - n_new
+            if self.random.random() < fractional:
+                n_new += 1
+
+            if n_new > 0:
+                self._add_demand_chargers(n_new)
+                self._update_charging_access()
+            return
+
+        raise ValueError(f"Unknown charger_expansion_mode {mode!r}")
+
+    def _add_demand_chargers(self, n_chargers: int) -> None:
+        """Site chargers from local adoption density and unmet access demand."""
+
+        if n_chargers <= 0:
+            return
+
+        counts = np.zeros((self.params.width, self.params.height), dtype=int)
+        for agent in self.agent_list:
+            if agent.ev_adopted:
+                counts[agent.home_pos] += 1
+
+        radius = max(int(self.params.demand_radius), 0)
+        local_adopters = np.zeros_like(counts, dtype=float)
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                local_adopters += np.roll(np.roll(counts, dx, axis=0), dy, axis=1)
+
+        weights = local_adopters * (1.0 - self.charging_access)
+        for charger_x, charger_y in self._charger_sites:
+            weights[charger_x, charger_y] = 0.0
+
+        total_weight = float(weights.sum())
+        if total_weight == 0.0:
+            self._add_random_chargers(n_chargers)
+            return
+
+        flat_weights = weights.ravel()
+        flat_candidates = np.flatnonzero(flat_weights > 0.0)
+        k = min(n_chargers, len(flat_candidates))
+        if k <= 0:
+            return
+
+        probabilities = flat_weights[flat_candidates] / flat_weights[flat_candidates].sum()
+        selected = self.rng.choice(
+            flat_candidates,
+            size=k,
+            replace=False,
+            p=probabilities,
+        )
+
+        for flat_index in np.atleast_1d(selected):
+            x = int(flat_index) // self.params.height
+            y = int(flat_index) % self.params.height
+            pos = (x, y)
+            self._charger_sites.add(pos)
+            self.chargers.append(pos)
 
     def _add_random_chargers(self, n_chargers: int) -> None:
         if n_chargers <= 0:

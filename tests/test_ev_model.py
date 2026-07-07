@@ -554,3 +554,99 @@ def test_initial_adopters_same_seed_reproducible():
         first.datacollector.get_model_vars_dataframe(),
         second.datacollector.get_model_vars_dataframe(),
     )
+
+
+def test_charger_expansion_mode_defaults_to_exogenous():
+    assert EVParams().charger_expansion_mode == "exogenous"
+
+    params = EVParams(
+        width=8,
+        height=8,
+        number_of_agents=15,
+        charger_expansion_mode="exogenous",
+    )
+    first = EVAdoptionModel(params, seed=11)
+    second = EVAdoptionModel(params, seed=11)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )
+
+
+def test_demand_mode_without_adopters_adds_no_chargers_and_no_rng():
+    params = EVParams(
+        width=8,
+        height=8,
+        number_of_agents=15,
+        charger_expansion_mode="demand",
+        initial_ev_share=0.0,
+        initial_charging_coverage=0.0,
+        charger_expansion_rate=5.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    state = model.random.getstate()
+
+    model._expand_charging_infrastructure()
+
+    assert len(model.chargers) == 0
+    assert model.random.getstate() == state
+
+
+def test_demand_mode_places_chargers_near_adopter_homes():
+    params = EVParams(
+        width=20,
+        height=20,
+        number_of_agents=30,
+        charger_expansion_mode="demand",
+        initial_ev_share=0.3,
+        initial_ev_clustered=True,
+        charger_expansion_rate=3.0,
+        demand_expansion_gain=4.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    model.run_model(5)
+
+    adopted_homes = [agent.home_pos for agent in model.agent_list if agent.ev_adopted]
+
+    def within_demand_radius(charger, home):
+        dx = abs(charger[0] - home[0])
+        dx = min(dx, params.width - dx)
+        dy = abs(charger[1] - home[1])
+        dy = min(dy, params.height - dy)
+        return max(dx, dy) <= params.demand_radius
+
+    assert len(model.chargers) > 0
+    assert all(
+        any(within_demand_radius(charger, home) for home in adopted_homes)
+        for charger in model.chargers
+    )
+
+
+def test_demand_mode_fallback_to_random_when_no_positive_weights():
+    params = EVParams(
+        width=8,
+        height=8,
+        number_of_agents=15,
+        charger_expansion_mode="demand",
+        initial_ev_share=0.0,
+        initial_charging_coverage=0.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    model._add_demand_chargers(2)
+
+    assert len(model.chargers) == 2
+
+
+def test_unknown_charger_expansion_mode_raises():
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    model = EVAdoptionModel(params, seed=42)
+    model.params.charger_expansion_mode = "bogus"
+
+    with pytest.raises(ValueError):
+        model._expand_charging_infrastructure()
