@@ -167,6 +167,11 @@ def _params_from_controls(
     range_anxiety_weight: float,
     income_mean: float,
     annual_mileage_mean: float,
+    adoption_rule: str = DEFAULT_PARAMS.adoption_rule,
+    adoption_temperature: float = DEFAULT_PARAMS.adoption_temperature,
+    initial_ev_share: float = DEFAULT_PARAMS.initial_ev_share,
+    charger_expansion_mode: str = DEFAULT_PARAMS.charger_expansion_mode,
+    social_diffusion: bool = DEFAULT_PARAMS.social_diffusion,
 ) -> EVParams:
     return EVParams(
         number_of_agents=number_of_agents,
@@ -187,6 +192,11 @@ def _params_from_controls(
         charger_expansion_rate=charger_expansion_rate,
         charger_access_decay=charger_access_decay,
         adoption_threshold=adoption_threshold,
+        adoption_rule=adoption_rule,
+        adoption_temperature=adoption_temperature,
+        initial_ev_share=initial_ev_share,
+        charger_expansion_mode=charger_expansion_mode,
+        social_diffusion=social_diffusion,
         economic_weight=economic_weight,
         charging_weight=charging_weight,
         environmental_weight=environmental_weight,
@@ -389,6 +399,11 @@ def Page():
     charger_expansion_rate = solara.use_reactive(DEFAULT_PARAMS.charger_expansion_rate)
     charger_access_decay = solara.use_reactive(DEFAULT_PARAMS.charger_access_decay)
     adoption_threshold = solara.use_reactive(DEFAULT_PARAMS.adoption_threshold)
+    adoption_rule = solara.use_reactive(DEFAULT_PARAMS.adoption_rule)
+    adoption_temperature = solara.use_reactive(DEFAULT_PARAMS.adoption_temperature)
+    initial_ev_share = solara.use_reactive(DEFAULT_PARAMS.initial_ev_share)
+    charger_expansion_mode = solara.use_reactive(DEFAULT_PARAMS.charger_expansion_mode)
+    social_diffusion = solara.use_reactive(DEFAULT_PARAMS.social_diffusion)
 
     economic_weight = solara.use_reactive(DEFAULT_PARAMS.economic_weight)
     charging_weight = solara.use_reactive(DEFAULT_PARAMS.charging_weight)
@@ -429,6 +444,11 @@ def Page():
             charger_expansion_rate=float(charger_expansion_rate.value),
             charger_access_decay=float(charger_access_decay.value),
             adoption_threshold=float(adoption_threshold.value),
+            adoption_rule=str(adoption_rule.value),
+            adoption_temperature=float(adoption_temperature.value),
+            initial_ev_share=float(initial_ev_share.value),
+            charger_expansion_mode=str(charger_expansion_mode.value),
+            social_diffusion=bool(social_diffusion.value),
             economic_weight=float(economic_weight.value),
             charging_weight=float(charging_weight.value),
             environmental_weight=float(environmental_weight.value),
@@ -541,6 +561,24 @@ def Page():
                     solara.SliderFloat("Fuel price", value=fuel_price, min=0.5, max=4.0, step=0.1)
                     solara.SliderFloat("Electricity price", value=electricity_price, min=0.05, max=1.0, step=0.05)
                     solara.SliderFloat("Adoption threshold", value=adoption_threshold, min=0.0, max=0.8, step=0.01)
+
+                with solara.Div(classes=["aff-control-block"]):
+                    ControlSection("Mechanisms")
+                    solara.Select(
+                        "Adoption rule",
+                        value=adoption_rule,
+                        values=["deterministic", "logistic"],
+                        dense=True,
+                    )
+                    solara.SliderFloat("Adoption temperature", value=adoption_temperature, min=0.005, max=0.5, step=0.005)
+                    solara.SliderFloat("Initial EV share", value=initial_ev_share, min=0.0, max=0.5, step=0.01)
+                    solara.Select(
+                        "Charger expansion",
+                        value=charger_expansion_mode,
+                        values=["exogenous", "demand"],
+                        dense=True,
+                    )
+                    solara.Checkbox(label="Social diffusion", value=social_diffusion)
 
                 with solara.Div(classes=["aff-control-block"]):
                     ControlSection("Charging")

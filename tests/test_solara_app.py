@@ -44,3 +44,52 @@ def test_scenarios_importable_from_solara_app():
     from affordance_mesa import solara_app
 
     assert "subsidy" in solara_app.SCENARIOS
+
+
+def test_solara_controls_expose_new_mechanism_params():
+    base_controls = {
+        "number_of_agents": 100,
+        "width": 201,
+        "height": 201,
+        "max_steps": 1000,
+        "pro_amount": 0.5,
+        "initial_pro": 0.5,
+        "initial_non": 0.5,
+        "networks": False,
+        "network_type": "KE",
+        "network_param": 5.0,
+        "mu": 0.9,
+        "subsidy": 8000.0,
+        "fuel_price": 1.8,
+        "electricity_price": 0.25,
+        "initial_charging_coverage": 0.0,
+        "charger_expansion_rate": 2.0,
+        "charger_access_decay": 1.0,
+        "adoption_threshold": 0.34,
+        "economic_weight": 0.25,
+        "charging_weight": 0.25,
+        "environmental_weight": 0.25,
+        "peer_weight": 0.15,
+        "range_anxiety_weight": 0.10,
+        "income_mean": 30000.0,
+        "annual_mileage_mean": 12000.0,
+    }
+    params = _params_from_controls(**base_controls)
+
+    assert params.adoption_rule == "deterministic"
+    assert params.initial_ev_share == 0.0
+    assert params.charger_expansion_mode == "exogenous"
+    assert params.social_diffusion is False
+
+    params = _params_from_controls(
+        **base_controls,
+        adoption_rule="logistic",
+        initial_ev_share=0.2,
+        charger_expansion_mode="demand",
+        social_diffusion=True,
+    )
+
+    assert params.adoption_rule == "logistic"
+    assert params.initial_ev_share == 0.2
+    assert params.charger_expansion_mode == "demand"
+    assert params.social_diffusion is True

@@ -127,6 +127,35 @@ The dashboard runs the EV adoption extension. It exposes EV policy controls,
 charging infrastructure controls, selected affordance-core controls, and plots
 EV adoption, charging access, TCO gap, and original affordance behaviour shares.
 
+## EV scenarios and experiments
+
+EV scenario presets are defined in `affordance_mesa.ev_params.SCENARIOS` and
+constructed with `EVParams.from_scenario(...)`. The current preset names are
+`colleague_baseline`, `no_policy`, `subsidy`, `fuel_price`, and
+`charging_expansion`.
+
+Run one preset from the command line:
+
+```bash
+python scripts/run_ev_model.py --scenario no_policy --steps 50 --seed 42
+```
+
+Run scenario and seed sweeps, optionally comparing against empirical targets:
+
+```bash
+python scripts/run_ev_experiments.py --scenarios no_policy subsidy --seeds 1 2 3 --targets targets.csv --set number_of_agents=100
+```
+
+The experiment runner writes `outputs/ev_experiment_curves.csv`,
+`outputs/ev_experiment_summary.csv`, and `outputs/ev_adoption_curves.png`.
+The notebook `notebooks/ev_scenarios.ipynb` provides the same preset workflow
+for reproducible exploratory runs.
+
+Optional mechanism switches include `adoption_rule`/`adoption_temperature`,
+`initial_ev_share`/`initial_ev_clustered`, `charger_expansion_mode=demand`,
+`social_diffusion`, `ev_supply_per_step`, and `ev_price_learning_rate`; all are
+off by default, so baseline runs are unchanged.
+
 ## Main files
 
 - `affordance_mesa/model.py` — Mesa model class, parameters, affordance landscape, data collection.
