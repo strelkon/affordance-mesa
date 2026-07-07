@@ -742,3 +742,113 @@ def test_social_diffusion_same_seed_reproducible():
         first.datacollector.get_model_vars_dataframe(),
         second.datacollector.get_model_vars_dataframe(),
     )
+
+
+def test_supply_and_learning_defaults_are_inactive():
+    params = EVParams(width=8, height=8, number_of_agents=15)
+    assert EVParams().ev_supply_per_step == float("inf")
+    assert EVParams().ev_price_learning_rate == 0.0
+
+    model = EVAdoptionModel(params, seed=42)
+    assert model.effective_ev_price == params.ev_purchase_price
+
+    first = EVAdoptionModel(params, seed=11)
+    second = EVAdoptionModel(params, seed=11)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )
+
+
+def test_supply_cap_limits_adoptions_per_step():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=30,
+        ev_supply_per_step=1,
+        subsidy=30000.0,
+        adoption_threshold=0.0,
+        vehicle_age_min=12,
+        vehicle_age_max=12,
+        replacement_interval_min=6,
+        replacement_interval_max=6,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    model.run_model(5)
+
+    counts = model.datacollector.get_model_vars_dataframe()["ev_adoption_count"]
+    increases = counts.diff().iloc[1:]
+
+    assert all(increase <= 1 for increase in increases)
+    assert counts.iloc[-1] == 5
+    assert model.datacollector.get_model_vars_dataframe().iloc[-1].ev_supply_blocked > 0
+
+
+def test_supply_blocked_agents_adopt_later():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=30,
+        ev_supply_per_step=1,
+        subsidy=30000.0,
+        adoption_threshold=0.0,
+        vehicle_age_min=12,
+        vehicle_age_max=12,
+        replacement_interval_min=6,
+        replacement_interval_max=6,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    model.run_model(12)
+
+    counts = model.datacollector.get_model_vars_dataframe()["ev_adoption_count"]
+    increases = counts.diff().iloc[1:]
+
+    assert all(increase == 1 for increase in increases)
+
+
+def test_price_learning_lowers_effective_price_with_floor():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        initial_ev_share=0.5,
+        ev_price_learning_rate=0.4,
+    )
+    model = EVAdoptionModel(params, seed=3)
+
+    assert model.effective_ev_price == pytest.approx(
+        params.ev_purchase_price * (1 - 0.4 * 0.5)
+    )
+
+    model.ev_adoption_share = 1.0
+    model.params.ev_price_learning_rate = 0.9
+
+    assert model._effective_ev_price() == pytest.approx(
+        params.ev_purchase_price * params.ev_price_floor_share
+    )
+
+
+def test_supply_constrained_same_seed_reproducible():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=25,
+        ev_supply_per_step=2,
+        initial_ev_share=0.2,
+    )
+    first = EVAdoptionModel(params, seed=8)
+    second = EVAdoptionModel(params, seed=8)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )

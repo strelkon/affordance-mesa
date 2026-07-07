@@ -30,6 +30,9 @@ class EVParams(AffordanceModelParams):
     subsidy: float = 8000.0
     fuel_price: float = 1.8
     electricity_price: float = 0.25
+    ev_supply_per_step: float = float("inf")
+    ev_price_learning_rate: float = 0.0
+    ev_price_floor_share: float = 0.5
 
     ev_purchase_price: float = 35000.0
     ice_purchase_price: float = 25000.0

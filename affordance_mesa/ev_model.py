@@ -44,11 +44,15 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.mean_home_charging_access = 0.0
         self.mean_range_anxiety = 0.0
         self.mean_environmental_concern = 0.0
+        self.ev_purchases_this_step = 0
+        self.ev_supply_blocked_this_step = 0
+        self.effective_ev_price = 0.0
 
         super().__init__(params=params or EVParams(), seed=seed)
 
         self.ev_agents = self.agent_list
         self._assign_initial_adopters()
+        self.effective_ev_price = self._effective_ev_price()
         self.charging_access = np.zeros((self.params.width, self.params.height), dtype=float)
         self._create_initial_chargers()
         self._update_charging_access()
@@ -155,12 +159,40 @@ class EVAdoptionModel(AffordanceLandscapeModel):
             agent.ev_adopted = True
             agent.vehicle_age = 0
 
+        self.ev_adoption_count = sum(agent.ev_adopted for agent in self.agent_list)
+        self.ev_adoption_share = (
+            self.ev_adoption_count / len(self.agent_list) if self.agent_list else 0.0
+        )
+
     def _torus_manhattan(self, a: tuple[int, int], b: tuple[int, int]) -> int:
         dx = abs(a[0] - b[0])
         dx = min(dx, self.params.width - dx)
         dy = abs(a[1] - b[1])
         dy = min(dy, self.params.height - dy)
         return dx + dy
+
+    def _effective_ev_price(self) -> float:
+        """Simple linear-in-adoption-share learning proxy.
+
+        ``ev_price_learning_rate=0`` keeps the list price exactly.
+        """
+
+        base = self.params.ev_purchase_price
+        price = base * (1.0 - self.params.ev_price_learning_rate * self.ev_adoption_share)
+        return max(price, base * self.params.ev_price_floor_share)
+
+    def request_ev_purchase(self) -> bool:
+        """Request one EV from the per-step market supply.
+
+        Blocked agents retry at later steps because vehicle age stays past the
+        replacement interval, creating delivery delays.
+        """
+
+        if self.ev_purchases_this_step < self.params.ev_supply_per_step:
+            self.ev_purchases_this_step += 1
+            return True
+        self.ev_supply_blocked_this_step += 1
+        return False
 
     def _sample_bounds(self) -> tuple[float, float]:
         lower = self._sample_uniform(0.0, 1.0, self.params.lower_bound_mean, self.params.lower_bound_sd)
@@ -205,6 +237,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "pro_affordance_share": pro_affordance_share,
                 "dominant_pro_share": dominant_pro_share,
                 "global_clustering": global_clustering_coefficient,
+                "ev_adoption_count": "ev_adoption_count",
                 "ev_adoption_share": "ev_adoption_share",
                 "mean_adoption_score": "mean_adoption_score",
                 "mean_charging_access": "mean_charging_access",
@@ -221,6 +254,8 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "mean_home_charging_access": "mean_home_charging_access",
                 "mean_range_anxiety": "mean_range_anxiety",
                 "mean_environmental_concern": "mean_environmental_concern",
+                "effective_ev_price": "effective_ev_price",
+                "ev_supply_blocked": "ev_supply_blocked_this_step",
                 "charger_count": lambda model: len(model.chargers),
             },
             agent_reporters={
@@ -458,6 +493,9 @@ class EVAdoptionModel(AffordanceLandscapeModel):
             self.mean_environmental_concern = 0.0
 
     def step(self) -> None:
+        self.ev_purchases_this_step = 0
+        self.ev_supply_blocked_this_step = 0
+        self.effective_ev_price = self._effective_ev_price()
         self._expand_charging_infrastructure()
 
         self.pro_behaviour = 0

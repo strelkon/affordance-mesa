@@ -81,7 +81,7 @@ class EVConsumerAgent(ConsumerAgent):
         home_x, home_y = self.home_pos
 
         ev_cost = ev_tco(
-            purchase_price=max(p.ev_purchase_price - p.subsidy, 0.0),
+            purchase_price=max(self.model.effective_ev_price - p.subsidy, 0.0),
             electricity_price=p.electricity_price,
             annual_mileage=self.annual_mileage,
             kwh_per_km=p.ev_kwh_per_km,
@@ -127,7 +127,7 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_adoption_score = adoption_score
         self.has_evaluated_adoption = True
 
-        if self._decide_adoption(adoption_score):
+        if self._decide_adoption(adoption_score) and self.model.request_ev_purchase():
             self.ev_adopted = True
             self.vehicle_age = 0
 
