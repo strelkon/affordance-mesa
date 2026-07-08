@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 from mesa.datacollection import DataCollector
 
@@ -27,10 +29,13 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self._charger_sites: set[tuple[int, int]] = set()
         self._agents_by_home: dict[tuple[int, int], list] = {}
         self.charging_access: np.ndarray
+        self.effective_charging_access: np.ndarray
         self.ev_adoption_count = 0
         self.ev_adoption_share = 0.0
         self.mean_adoption_score = 0.0
         self.mean_charging_access = 0.0
+        self.mean_charger_congestion = 0.0
+        self.mean_effective_charging_access = 0.0
         self.mean_tco_gap = 0.0
         self.mean_economic_score = 0.0
         self.mean_charging_score = 0.0
@@ -56,6 +61,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.charging_access = np.zeros((self.params.width, self.params.height), dtype=float)
         self._create_initial_chargers()
         self._update_charging_access()
+        self._update_effective_charging_access()
         self._update_ev_metrics()
         self.datacollector = self._create_ev_datacollector()
         self.datacollector.collect(self)
@@ -241,6 +247,8 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "ev_adoption_share": "ev_adoption_share",
                 "mean_adoption_score": "mean_adoption_score",
                 "mean_charging_access": "mean_charging_access",
+                "mean_charger_congestion": "mean_charger_congestion",
+                "mean_effective_charging_access": "mean_effective_charging_access",
                 "mean_tco_gap": "mean_tco_gap",
                 "mean_economic_score": "mean_economic_score",
                 "mean_charging_score": "mean_charging_score",
@@ -415,6 +423,47 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.charging_access = 1.0 / (1.0 + min_distance / decay)
         self.mean_charging_access = float(np.mean(self.charging_access))
 
+    def _update_effective_charging_access(self) -> None:
+        """Discount charging access by local charger capacity versus EV demand.
+
+        Where local demand exceeds local charger capacity, perceived access is
+        scaled by the supply/demand ratio. Cells with EV demand but no charger
+        capacity inside the congestion radius receive a factor of 0.0; those
+        homes rely on capacity outside the radius and are treated as unserved.
+        """
+
+        if math.isinf(float(self.params.charger_capacity)):
+            self.effective_charging_access = self.charging_access
+            self.mean_charger_congestion = 0.0
+            self.mean_effective_charging_access = self.mean_charging_access
+            return
+
+        demand_counts = np.zeros((self.params.width, self.params.height), dtype=int)
+        for agent in self.agent_list:
+            if agent.ev_adopted:
+                demand_counts[agent.home_pos] += 1
+
+        charger_sites = np.zeros((self.params.width, self.params.height), dtype=float)
+        for charger_x, charger_y in self._charger_sites:
+            charger_sites[charger_x, charger_y] = 1.0
+
+        radius = max(int(self.params.congestion_radius), 0)
+        local_demand = np.zeros_like(demand_counts, dtype=float)
+        local_supply_sites = np.zeros_like(charger_sites, dtype=float)
+        for dx in range(-radius, radius + 1):
+            for dy in range(-radius, radius + 1):
+                local_demand += np.roll(np.roll(demand_counts, dx, axis=0), dy, axis=1)
+                local_supply_sites += np.roll(np.roll(charger_sites, dx, axis=0), dy, axis=1)
+
+        supply = local_supply_sites * float(self.params.charger_capacity)
+        factor = np.ones_like(self.charging_access, dtype=float)
+        mask = local_demand > supply
+        factor[mask] = supply[mask] / local_demand[mask]
+
+        self.effective_charging_access = self.charging_access * factor
+        self.mean_charger_congestion = float(np.mean(1.0 - factor))
+        self.mean_effective_charging_access = float(np.mean(self.effective_charging_access))
+
     def _update_ev_metrics(self) -> None:
         """Update EV adoption metrics.
 
@@ -497,6 +546,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.ev_supply_blocked_this_step = 0
         self.effective_ev_price = self._effective_ev_price()
         self._expand_charging_infrastructure()
+        self._update_effective_charging_access()
 
         self.pro_behaviour = 0
         self.non_behaviour = 0

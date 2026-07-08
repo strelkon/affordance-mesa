@@ -104,7 +104,7 @@ class EVConsumerAgent(ConsumerAgent):
         economic_component += 0.1 * affordability_score
 
         charging_score = 0.7 * self.home_charging_access
-        charging_score += 0.3 * float(self.model.charging_access[home_x, home_y])
+        charging_score += 0.3 * float(self.model.effective_charging_access[home_x, home_y])
         environmental_score = 0.5 * self.environmental_concern + 0.5 * self.pro_env
         peer_adoption_share = self._peer_adoption_share()
 

@@ -26,6 +26,8 @@ class EVParams(AffordanceModelParams):
     demand_expansion_gain: float = 4.0
     demand_radius: int = 2
     charger_access_decay: float = 1.0
+    charger_capacity: float = float("inf")
+    congestion_radius: int = 3
 
     subsidy: float = 8000.0
     fuel_price: float = 1.8

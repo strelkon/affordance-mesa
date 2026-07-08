@@ -852,3 +852,105 @@ def test_supply_constrained_same_seed_reproducible():
         first.datacollector.get_model_vars_dataframe(),
         second.datacollector.get_model_vars_dataframe(),
     )
+
+
+def test_infinite_capacity_aliases_raw_access():
+    params = EVParams(width=8, height=8, number_of_agents=15)
+    model = EVAdoptionModel(params, seed=42)
+
+    assert model.effective_charging_access is model.charging_access
+    assert model.mean_charger_congestion == 0.0
+
+    model.run_model(5)
+
+    assert model.effective_charging_access is model.charging_access
+
+    first = EVAdoptionModel(params, seed=11)
+    second = EVAdoptionModel(params, seed=11)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )
+
+
+def test_finite_capacity_discounts_access_under_demand():
+    params = EVParams(
+        width=12,
+        height=12,
+        number_of_agents=30,
+        initial_ev_share=0.5,
+        initial_ev_clustered=True,
+        initial_charging_coverage=0.01,
+        charger_expansion_rate=0.0,
+        charger_capacity=1.0,
+        congestion_radius=2,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    assert model.effective_charging_access is not model.charging_access
+    assert np.all(model.effective_charging_access <= model.charging_access + 1e-12)
+    assert model.effective_charging_access.sum() < model.charging_access.sum()
+    assert model.mean_charger_congestion > 0.0
+
+
+def test_high_capacity_behaves_like_uncongested():
+    params = EVParams(
+        width=12,
+        height=12,
+        number_of_agents=30,
+        initial_ev_share=0.5,
+        initial_ev_clustered=True,
+        initial_charging_coverage=1.0,
+        charger_expansion_rate=0.0,
+        charger_capacity=1000.0,
+        congestion_radius=2,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    assert np.allclose(model.effective_charging_access, model.charging_access)
+
+
+def test_agent_reads_effective_access():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=1,
+        charger_capacity=5.0,
+        initial_charging_coverage=0.0,
+        charger_expansion_rate=0.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    agent.home_charging_access = 0.0
+    model.charging_access[:, :] = 0.0
+    model.effective_charging_access = np.zeros_like(model.charging_access)
+    model.effective_charging_access[agent.home_pos] = 1.0
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_charging_score == pytest.approx(0.3)
+
+
+def test_congested_same_seed_reproducible():
+    params = EVParams(
+        width=12,
+        height=12,
+        number_of_agents=25,
+        initial_ev_share=0.3,
+        charger_capacity=2.0,
+        initial_charging_coverage=0.02,
+    )
+    first = EVAdoptionModel(params, seed=6)
+    second = EVAdoptionModel(params, seed=6)
+
+    first.run_model(10)
+    second.run_model(10)
+
+    assert_frame_equal(
+        first.datacollector.get_model_vars_dataframe(),
+        second.datacollector.get_model_vars_dataframe(),
+    )
