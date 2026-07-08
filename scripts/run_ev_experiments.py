@@ -1,12 +1,14 @@
 """Calibration & sensitivity workflow for EV scenario sweeps.
 
 Batch scenario sweeps, comparison against empirical adoption targets, exported
-tables and plots turn the prototype into an analysable model.
+tables and plots turn the prototype into an analysable model. One-at-a-time
+sensitivity mode is available with ``--sweep KEY=V1,V2``.
 """
 
 from __future__ import annotations
 
 import argparse
+import numbers
 import sys
 from pathlib import Path
 
@@ -57,6 +59,16 @@ def parse_overrides(settings: list[str] | None) -> dict:
             raise ValueError(f"Override must be KEY=VALUE, got {setting!r}")
         overrides[key] = _coerce_value(value)
     return overrides
+
+
+def parse_sweep(setting: str) -> tuple[str, list]:
+    key, separator, value = setting.partition("=")
+    if not separator:
+        raise ValueError(f"Sweep must be KEY=V1,V2, got {setting!r}")
+    values = [part.strip() for part in value.split(",") if part.strip()]
+    if len(values) < 2:
+        raise ValueError(f"Sweep must include at least two values, got {setting!r}")
+    return key, [_coerce_value(value) for value in values]
 
 
 def run_single(
@@ -187,6 +199,99 @@ def run_experiments(
     return summary
 
 
+def _is_numeric_series(values: pd.Series) -> bool:
+    return all(
+        isinstance(value, numbers.Number) and not isinstance(value, bool)
+        for value in values
+    )
+
+
+def _plot_sensitivity(summary: pd.DataFrame, scenario: str, output_dir: Path) -> list[Path]:
+    paths = []
+    for param, param_summary in summary.groupby("param", sort=False):
+        plot_path = output_dir / f"ev_sensitivity_{param}.png"
+        fig, ax = plt.subplots(figsize=(7, 4.5))
+        if _is_numeric_series(param_summary["value"]):
+            x = pd.to_numeric(param_summary["value"])
+            ax.errorbar(
+                x,
+                param_summary["final_ev_share_mean"],
+                yerr=param_summary["final_ev_share_std"],
+                marker="o",
+                capsize=3,
+            )
+        else:
+            labels = [str(value) for value in param_summary["value"]]
+            ax.bar(
+                labels,
+                param_summary["final_ev_share_mean"],
+                yerr=param_summary["final_ev_share_std"],
+                capsize=3,
+            )
+        ax.set_xlabel(param)
+        ax.set_ylabel("Final EV adoption share")
+        ax.set_title(f"Sensitivity: {param} ({scenario})")
+        fig.tight_layout()
+        fig.savefig(plot_path, dpi=150)
+        plt.close(fig)
+        paths.append(plot_path)
+    return paths
+
+
+def run_sensitivity(
+    sweeps,
+    scenario,
+    seeds,
+    steps,
+    output_dir,
+    overrides=None,
+) -> pd.DataFrame:
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    rows = []
+    for param, values in sweeps.items():
+        for value in values:
+            for seed in seeds:
+                frame = run_single(
+                    scenario,
+                    seed,
+                    steps,
+                    overrides={**(overrides or {}), param: value},
+                )
+                final = frame.iloc[-1]
+                rows.append(
+                    {
+                        "param": param,
+                        "value": value,
+                        "seed": seed,
+                        "ev_adoption_share": final["ev_adoption_share"],
+                        "charger_count": final["charger_count"],
+                        "mean_adoption_score": final["mean_adoption_score"],
+                    }
+                )
+
+    final_rows = pd.DataFrame(rows)
+    summary = (
+        final_rows.groupby(["param", "value"], as_index=False, sort=False)
+        .agg(
+            final_ev_share_mean=("ev_adoption_share", "mean"),
+            final_ev_share_std=("ev_adoption_share", "std"),
+            final_charger_count_mean=("charger_count", "mean"),
+        )
+    )
+    summary["final_ev_share_std"] = summary["final_ev_share_std"].fillna(0.0)
+
+    summary_path = output_dir / "ev_sensitivity_summary.csv"
+    summary.to_csv(summary_path, index=False)
+    print(f"Wrote {summary_path}")
+
+    for plot_path in _plot_sensitivity(summary, scenario, output_dir):
+        print(f"Wrote {plot_path}")
+
+    return summary
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -200,14 +305,33 @@ def main() -> None:
     parser.add_argument("--output-dir", default="outputs")
     parser.add_argument("--targets")
     parser.add_argument("--set", action="append", default=[])
+    parser.add_argument("--sweep", action="append", default=[], metavar="KEY=V1,V2")
+    parser.add_argument(
+        "--sweep-scenario",
+        choices=sorted(SCENARIOS),
+        default="colleague_baseline",
+    )
     args = parser.parse_args()
+    overrides = parse_overrides(args.set)
+
+    if args.sweep:
+        sweeps = dict(parse_sweep(sweep) for sweep in args.sweep)
+        run_sensitivity(
+            sweeps,
+            args.sweep_scenario,
+            args.seeds,
+            args.steps,
+            args.output_dir,
+            overrides=overrides,
+        )
+        return
 
     run_experiments(
         args.scenarios,
         args.seeds,
         args.steps,
         args.output_dir,
-        overrides=parse_overrides(args.set),
+        overrides=overrides,
         targets_path=args.targets,
     )
 
