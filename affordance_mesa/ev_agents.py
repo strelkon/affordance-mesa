@@ -1,4 +1,14 @@
-"""EV-enabled agents built as a subclass of the affordance ConsumerAgent."""
+"""EV-enabled agents built as a subclass of the affordance ConsumerAgent.
+
+Interpretation: the model carries two environmental layers. ``pro_env`` is the
+general pro-environmental affordance state inherited from ``ConsumerAgent``; it
+is dynamic through asocial/social affordance learning and bounded by the
+agent's lower and upper bounds. ``environmental_concern`` is an EV-specific
+preference trait, fixed at initialization unless social diffusion is enabled.
+The EV environmental score blends the two with
+``env_score_pro_env_weight``. Grid movement belongs to the abstract affordance
+landscape, while EV adoption is tied to the residential ``home_pos``.
+"""
 
 from __future__ import annotations
 
@@ -105,7 +115,8 @@ class EVConsumerAgent(ConsumerAgent):
 
         charging_score = 0.7 * self.home_charging_access
         charging_score += 0.3 * float(self.model.effective_charging_access[home_x, home_y])
-        environmental_score = 0.5 * self.environmental_concern + 0.5 * self.pro_env
+        w = p.env_score_pro_env_weight
+        environmental_score = (1.0 - w) * self.environmental_concern + w * self.pro_env
         peer_adoption_share = self._peer_adoption_share()
 
         adoption_score = (

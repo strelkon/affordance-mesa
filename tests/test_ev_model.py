@@ -954,3 +954,46 @@ def test_congested_same_seed_reproducible():
         first.datacollector.get_model_vars_dataframe(),
         second.datacollector.get_model_vars_dataframe(),
     )
+
+
+def test_env_score_weight_default_matches_previous_blend():
+    assert EVParams().env_score_pro_env_weight == 0.5
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_environmental_score == pytest.approx(
+        0.5 * agent.environmental_concern + 0.5 * agent.pro_env
+    )
+
+
+def test_env_score_weight_zero_uses_concern_only():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        env_score_pro_env_weight=0.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_environmental_score == pytest.approx(agent.environmental_concern)
+
+
+def test_env_score_weight_one_uses_pro_env_only():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        env_score_pro_env_weight=1.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_environmental_score == pytest.approx(agent.pro_env)

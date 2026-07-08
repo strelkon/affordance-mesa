@@ -79,6 +79,17 @@ sites per step. For example, `0.5` means roughly one new charger every two
 steps; `1.0` means one new charger per step. Charging access is spatial:
 charger sites are placed on the grid, and access decays with distance.
 
+### Affordance states versus EV traits
+
+The EV layer keeps two environmental concepts separate. `pro_env` is the
+general pro-environmental affordance state inherited from `ConsumerAgent`; it
+changes through the original affordance-learning dynamics. `environmental_concern`
+is an EV-specific preference trait. The `env_score_pro_env_weight` parameter
+controls their blend in the EV environmental score: `0.0` uses only the EV
+trait, `0.5` keeps an equal blend, and `1.0` uses only the affordance state.
+`social_diffusion` is the only mechanism that makes `environmental_concern` and
+`range_anxiety` dynamic.
+
 ## Run the EV model from Jupyter
 
 If the notebook is opened outside the repository folder, first point it at this

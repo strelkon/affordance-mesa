@@ -52,6 +52,9 @@ class EVParams(AffordanceModelParams):
     economic_weight: float = 0.25
     charging_weight: float = 0.25
     environmental_weight: float = 0.25
+    # Weight of dynamic pro_env in the EV environmental score; 1 - weight is environmental_concern.
+    # 0.0 = EV preference only, 1.0 = affordance state only.
+    env_score_pro_env_weight: float = 0.5
     peer_weight: float = 0.15
     range_anxiety_weight: float = 0.10
 
