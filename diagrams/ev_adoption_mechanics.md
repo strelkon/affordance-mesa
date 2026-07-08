@@ -1,58 +1,74 @@
 # EV Adoption Extension Mechanics
 
+As implemented (see `EV_MODEL_DESCRIPTION.md` for the full description).
+Dashed mechanisms are optional switches, all off by default.
+
 ```mermaid
 flowchart LR
-    subgraph Base["Base Mesa Affordance Model"]
+    subgraph Base["Base Mesa Affordance Model (unchanged)"]
         A["Affordance grid\npro / non environmental opportunities"]
         B["ConsumerAgent\npro_env and non_env states"]
-        C["Behaviour loop\nmove, encounter affordance, act"]
-        D["Learning updates\nasocial and social learning"]
-        E["Optional niche construction\nchanges nearby affordance cells"]
+        C["Behaviour loop\nmove through landscape, act, learn"]
         A --> C
         B --> C
-        C --> D
-        D --> B
-        C --> E
-        E --> A
+        C --> B
     end
 
     subgraph EV["EV Adoption Extension"]
-        F["EVConsumerAgent attributes\nincome, mileage, vehicle age,\nrange anxiety, price sensitivity,\nenvironmental concern"]
-        G["Charging affordance layer\nhome, public, destination,\nfast charger access"]
-        H["TCO / price mechanism\nEV cost, ICEV cost, subsidy,\nfuel, electricity, maintenance"]
-        I["Policy scenario\nbaseline, subsidy, infrastructure, combined"]
-        J["Social network exposure\npeer EV adoption share"]
-        K["Replacement trigger\nagent decides only when vehicle is due"]
+        F["EVConsumerAgent\nincome, mileage, vehicle age,\ntraits; fixed home_pos\n(movement stays abstract)"]
+        G["Charging access layer\nnearest-charger distance decay\nat home_pos"]
+        G2["Congestion (optional)\nlocal capacity vs adopter demand\ndiscounts effective access"]
+        H["TCO mechanism\neffective EV price - subsidy vs ICE;\nfuel, electricity, maintenance"]
+        H2["Price learning (optional)\nEV price declines with adoption,\nfloored"]
+        I["Scenario presets\ncolleague_baseline, no_policy,\nsubsidy, fuel_price,\ncharging_expansion"]
+        J["Peer exposure\nnetwork neighbours or\nresidential Moore homes"]
+        J2["Social diffusion (optional)\npeer share lowers range anxiety,\nraises environmental concern"]
+        K["Replacement trigger\nvehicle_age >= replacement_interval"]
         L["Adoption score\neconomic + charging + environmental\n+ peer - range anxiety"]
-        M["EV adoption state\nev_adopted true / false"]
+        L2["Decision rule\ndeterministic threshold (default)\nor logistic probability"]
+        M2["Supply gate (optional)\nat most ev_supply_per_step\npurchases; blocked agents retry"]
+        M["EV adoption state\nev_adopted; initial_ev_share\nseeds t=0 market"]
+        X["Charging expansion\nexogenous rate (default) or\ndemand-driven siting near\nadopter homes"]
     end
 
     B -. "subclass" .-> F
-    A -. "spatial opportunity idea" .-> G
     I --> H
-    I --> G
+    I --> X
     F --> H
     F --> L
-    G --> L
+    G --> G2
+    G2 --> L
     H --> L
     J --> L
     K --> L
-    L --> M
+    L --> L2
+    L2 --> M2
+    M2 --> M
     M --> J
-    M -. "more visible EVs\nshift norms and perceived feasibility" .-> D
-    M -. "adoption demand can justify\ncharger rollout" .-> G
+    J -.-> J2
+    J2 -.-> F
+    M -. "adoption share" .-> H2
+    H2 -.-> H
+    M -. "demand mode:\nadoption drives siting" .-> X
+    X --> G
+    M -. "adopter homes\ncongest chargers" .-> G2
 
-    subgraph Outputs["Model Outputs"]
-        N["EV adoption share"]
-        O["Mean TCO gap"]
-        P["Charging coverage"]
-        Q["Peer exposure"]
-        R["Original pro / non behaviour shares"]
+    subgraph Outputs["Model Outputs (DataCollector)"]
+        N["EV adoption share / count"]
+        O["Decision-component means\n(economic, charging, environmental,\npeer, range anxiety, TCO)"]
+        P["Charging coverage, congestion,\neffective price, supply blocked"]
+        R["Original pro / non\nbehaviour shares"]
     end
 
     M --> N
-    H --> O
-    G --> P
-    J --> Q
+    L --> O
+    G2 --> P
     C --> R
 ```
+
+Two coupled feedback loops when the optional mechanisms are enabled:
+
+- **Reinforcing**: adoption → demand-driven charger siting → better access →
+  higher adoption (plus price learning and social diffusion amplifying it).
+- **Balancing**: adoption → local charger congestion → lower effective
+  access → dampened adoption.

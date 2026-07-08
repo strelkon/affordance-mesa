@@ -56,7 +56,10 @@ python scripts/run_experiments.py
 
 The EV extension lives in `affordance_mesa/ev_model.py`,
 `affordance_mesa/ev_agents.py`, `affordance_mesa/ev_params.py`, and
-`affordance_mesa/ev_costs.py`.
+`affordance_mesa/ev_costs.py`. The full model description — entities, step
+schedule, the adoption-score formula, every mechanism switch, the parameter
+table, and outputs — is in `EV_MODEL_DESCRIPTION.md`; a mechanics diagram is
+in `diagrams/ev_adoption_mechanics.md`.
 
 ```bash
 python scripts/run_ev_model.py
@@ -68,11 +71,16 @@ when its vehicle reaches replacement age.
 
 Key EV outputs collected by the Mesa `DataCollector` include:
 
-- `ev_adoption_share`
-- `mean_adoption_score`
-- `mean_charging_access`
-- `mean_tco_gap`
+- `ev_adoption_share` and `ev_adoption_count`
+- `mean_adoption_score` and per-component decision means (economic, charging,
+  environmental, peer, range anxiety, EV/ICE TCO)
+- `mean_charging_access`, `mean_effective_charging_access`,
+  `mean_charger_congestion`
+- `mean_tco_gap`, `effective_ev_price`, `ev_supply_blocked`
 - `charger_count`
+
+The complete reporter list and the averaging conventions are documented in
+`EV_MODEL_DESCRIPTION.md`.
 
 `charger_expansion_rate` is interpreted as the expected number of new charger
 sites per step. For example, `0.5` means roughly one new charger every two
@@ -178,9 +186,13 @@ off by default, so baseline runs are unchanged.
 - `affordance_mesa/ev_costs.py` — pure EV/ICE total-cost-of-ownership helpers.
 - `affordance_mesa/solara_app.py` — browser dashboard for stepping and plotting the EV extension.
 - `scripts/run_model.py` — command-line runner for one simulation.
-- `scripts/run_ev_model.py` — command-line runner for the EV adoption extension.
-- `scripts/run_experiments.py` — simple BehaviorSpace-style parameter sweep.
-- `CODEX_TASK.md` — prompt for continuing the implementation with Codex.
+- `scripts/run_ev_model.py` — command-line runner for the EV adoption extension (scenario presets).
+- `scripts/run_experiments.py` — simple BehaviorSpace-style parameter sweep (base model).
+- `scripts/run_ev_experiments.py` — EV scenario sweeps, target comparison, and OAT sensitivity.
+- `notebooks/ev_scenarios.ipynb` — reproducible scenario-runner notebook.
+- `EV_MODEL_DESCRIPTION.md` — full description of the implemented EV extension.
+- `VALIDATION.md` — validation notes, including the EV calibration/sensitivity workflow.
+- `EV_MODEL_EXTENSION_CODING_BRIEF.md` — original coding brief (implemented; kept for history).
 
 ## Mapping from NetLogo to Mesa
 
@@ -213,7 +225,10 @@ python -m pytest -q
 ```
 
 The tests cover the original affordance model, network generation, validation
-script plumbing, and the EV extension integration points.
+script plumbing, and the EV extension: adoption mechanics, every optional
+mechanism switch, scenario presets, the experiment/sensitivity runner, the
+notebook, and the Solara controls. Same-seed regression tests pin that all
+optional mechanisms are exactly inactive by default.
 
 ## License note
 

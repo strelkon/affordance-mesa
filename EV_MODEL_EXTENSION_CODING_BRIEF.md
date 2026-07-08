@@ -1,5 +1,12 @@
 # EV Adoption Extension Coding Brief
 
+> **Status (July 2026): implemented and superseded.** This brief guided the
+> first version of the EV extension. The model has since grown well beyond it
+> (fixed home locations, scenario presets, probabilistic adoption, demand-driven
+> expansion, congestion, supply limits, price learning, social diffusion, and a
+> calibration workflow). For the current model, read `EV_MODEL_DESCRIPTION.md`;
+> the Main Rule below still applies to all future work.
+
 This brief describes how to extend the Mesa affordance model toward EV adoption
 without changing the conceptual logic of the original affordance-landscape port.
 
