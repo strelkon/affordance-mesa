@@ -1,14 +1,5 @@
 # EV Adoption Extension — Model Description
 
-This document describes the EV adoption extension as implemented in
-`affordance_mesa/ev_model.py`, `ev_agents.py`, `ev_params.py`, and
-`ev_costs.py`. It reflects the development round driven by
-*EV model mismatches and development ideas* (June 2026): all nine mismatch
-items and all ten development ideas from that document are implemented.
-For the base affordance-landscape model, see the README and the original
-NetLogo model documentation; for validation and sensitivity workflows, see
-`VALIDATION.md`.
-
 ## 1. Purpose
 
 The extension adds household electric-vehicle adoption on top of the
