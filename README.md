@@ -12,9 +12,11 @@ The original model is an abstract ABM of pro-environmental behaviour patterns. C
 4. personal states such as habits and attitudes; and
 5. cultural niche construction.
 
-This port keeps the original model logic only. It does not include nudge,
-policy-intervention, or consumer-choice extensions beyond the NetLogo v1.2.0
-mechanisms.
+The original affordance-landscape implementation remains available as the
+computational core. EV adoption code is provided as a separate extension layer:
+it adds vehicle replacement, total-cost-of-ownership, charging access, and peer
+adoption mechanisms while preserving the original affordance behaviour loop.
+The EV extension is not part of the original NetLogo model.
 
 ## Installation
 
@@ -50,21 +52,147 @@ python scripts/run_model.py --steps 1000 --seed 74 --networks --niche-constructi
 python scripts/run_experiments.py
 ```
 
-## Launch the Solara dashboard
+## Run the EV adoption extension
+
+The EV extension lives in `affordance_mesa/ev_model.py`,
+`affordance_mesa/ev_agents.py`, `affordance_mesa/ev_params.py`, and
+`affordance_mesa/ev_costs.py`. The full model description — entities, step
+schedule, the adoption-score formula, every mechanism switch, the parameter
+table, and outputs — is in `EV_MODEL_DESCRIPTION.md`; a mechanics diagram is
+in `diagrams/ev_adoption_mechanics.md`.
+
+```bash
+python scripts/run_ev_model.py
+```
+
+The EV model subclasses `AffordanceLandscapeModel`. Each `EVConsumerAgent`
+first performs the original affordance behaviour, then considers EV adoption
+when its vehicle reaches replacement age.
+
+Key EV outputs collected by the Mesa `DataCollector` include:
+
+- `ev_adoption_share` and `ev_adoption_count`
+- `mean_adoption_score` and per-component decision means (economic, charging,
+  environmental, peer, range anxiety, EV/ICE TCO)
+- `mean_charging_access`, `mean_effective_charging_access`,
+  `mean_charger_congestion`
+- `mean_tco_gap`, `effective_ev_price`, `ev_supply_blocked`
+- `charger_count`
+
+The complete reporter list and the averaging conventions are documented in
+`EV_MODEL_DESCRIPTION.md`.
+
+`charger_expansion_rate` is interpreted as the expected number of new charger
+sites per step. For example, `0.5` means roughly one new charger every two
+steps; `1.0` means one new charger per step. Charging access is spatial:
+charger sites are placed on the grid, and access decays with distance.
+
+### Affordance states versus EV traits
+
+The EV layer keeps two environmental concepts separate. `pro_env` is the
+general pro-environmental affordance state inherited from `ConsumerAgent`; it
+changes through the original affordance-learning dynamics. `environmental_concern`
+is an EV-specific preference trait. The `env_score_pro_env_weight` parameter
+controls their blend in the EV environmental score: `0.0` uses only the EV
+trait, `0.5` keeps an equal blend, and `1.0` uses only the affordance state.
+`social_diffusion` is the only mechanism that makes `environmental_concern` and
+`range_anxiety` dynamic.
+
+## Run the EV model from Jupyter
+
+If the notebook is opened outside the repository folder, first point it at this
+checkout:
+
+```python
+%cd /Users/strelkon/Library/CloudStorage/OneDrive-IIASA/YSSP/26_Jorge
+```
+
+Then run:
+
+```python
+from affordance_mesa.ev_model import EVAdoptionModel
+from affordance_mesa.ev_params import EVParams
+
+params = EVParams(
+    width=201,
+    height=201,
+    number_of_agents=100,
+    subsidy=8000,
+    initial_charging_coverage=0.0,
+    charger_expansion_rate=2.0,
+    adoption_threshold=0.34,
+)
+
+model = EVAdoptionModel(params, seed=42)
+model.run_model(50)
+
+results = model.datacollector.get_model_vars_dataframe()
+results.tail()
+```
+
+Alternatively, install the repository in editable mode from a notebook:
+
+```python
+%pip install -e /Users/strelkon/Library/CloudStorage/OneDrive-IIASA/YSSP/26_Jorge
+```
+
+## Launch the EV Solara dashboard
 
 ```bash
 solara run affordance_mesa/solara_app.py --port 8765
 ```
+
+The dashboard runs the EV adoption extension. It exposes EV policy controls,
+charging infrastructure controls, selected affordance-core controls, and plots
+EV adoption, charging access, TCO gap, and original affordance behaviour shares.
+
+## EV scenarios and experiments
+
+EV scenario presets are defined in `affordance_mesa.ev_params.SCENARIOS` and
+constructed with `EVParams.from_scenario(...)`. The current preset names are
+`colleague_baseline`, `no_policy`, `subsidy`, `fuel_price`, and
+`charging_expansion`.
+
+Run one preset from the command line:
+
+```bash
+python scripts/run_ev_model.py --scenario no_policy --steps 50 --seed 42
+```
+
+Run scenario and seed sweeps, optionally comparing against empirical targets:
+
+```bash
+python scripts/run_ev_experiments.py --scenarios no_policy subsidy --seeds 1 2 3 --targets targets.csv --set number_of_agents=100
+```
+
+The experiment runner writes `outputs/ev_experiment_curves.csv`,
+`outputs/ev_experiment_summary.csv`, and `outputs/ev_adoption_curves.png`.
+The notebook `notebooks/ev_scenarios.ipynb` provides the same preset workflow
+for reproducible exploratory runs.
+
+Optional mechanism switches include `adoption_rule`/`adoption_temperature`,
+`initial_ev_share`/`initial_ev_clustered`, `charger_expansion_mode=demand`,
+`social_diffusion`, `ev_supply_per_step`, and `ev_price_learning_rate`; all are
+off by default, so baseline runs are unchanged.
 
 ## Main files
 
 - `affordance_mesa/model.py` — Mesa model class, parameters, affordance landscape, data collection.
 - `affordance_mesa/agents.py` — consumer agent behaviour, learning, niche construction, movement.
 - `affordance_mesa/networks.py` — random, small-world, preferential, and KE-style social networks.
-- `affordance_mesa/solara_app.py` — browser dashboard for stepping and plotting the model.
+- `affordance_mesa/ev_model.py` — optional EV adoption model extending the affordance model.
+- `affordance_mesa/ev_agents.py` — EV-capable consumer agents.
+- `affordance_mesa/ev_params.py` — EV extension parameters.
+- `affordance_mesa/ev_costs.py` — pure EV/ICE total-cost-of-ownership helpers.
+- `affordance_mesa/solara_app.py` — browser dashboard for stepping and plotting the EV extension.
 - `scripts/run_model.py` — command-line runner for one simulation.
-- `scripts/run_experiments.py` — simple BehaviorSpace-style parameter sweep.
-- `CODEX_TASK.md` — prompt for continuing the implementation with Codex.
+- `scripts/run_ev_model.py` — command-line runner for the EV adoption extension (scenario presets).
+- `scripts/run_experiments.py` — simple BehaviorSpace-style parameter sweep (base model).
+- `scripts/run_ev_experiments.py` — EV scenario sweeps, target comparison, and OAT sensitivity.
+- `notebooks/ev_scenarios.ipynb` — reproducible scenario-runner notebook.
+- `EV_MODEL_DESCRIPTION.md` — full description of the implemented EV extension.
+- `VALIDATION.md` — validation notes, including the EV calibration/sensitivity workflow.
+- `EV_MODEL_EXTENSION_CODING_BRIEF.md` — original coding brief (implemented; kept for history).
 
 ## Mapping from NetLogo to Mesa
 
@@ -86,6 +214,21 @@ solara run affordance_mesa/solara_app.py --port 8765
 3. **KE network**: The KE network generator is a transparent approximation of the NetLogo implementation, not a formally verified byte-for-byte port.
 4. **Visualization**: The Solara dashboard is a Mesa/Python browser view and is not a NetLogo interface clone.
 5. **Validation**: The port has not yet been numerically calibrated against the original NetLogo BehaviorSpace output.
+6. **EV extension**: EV adoption mechanisms are an added scenario layer and are not present in the original NetLogo model.
+
+## Tests
+
+Run the test suite with:
+
+```bash
+python -m pytest -q
+```
+
+The tests cover the original affordance model, network generation, validation
+script plumbing, and the EV extension: adoption mechanics, every optional
+mechanism switch, scenario presets, the experiment/sensitivity runner, the
+notebook, and the Solara controls. Same-seed regression tests pin that all
+optional mechanisms are exactly inactive by default.
 
 ## License note
 

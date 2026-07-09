@@ -1,0 +1,41 @@
+topic: ev_adoption_models
+execution:
+  output_dir: ./ev_adoption_models/results
+  batch_size: 6
+  items_per_agent: 1
+items:
+  - name: Agent-based EV adoption models
+    category: ABM and microsimulation
+    description: >
+      Literature using agent-based models, microsimulation, heterogeneous households,
+      social influence, learning, and bounded-rational vehicle choice to simulate
+      electric vehicle adoption.
+  - name: Diffusion and system dynamics EV adoption models
+    category: Aggregate diffusion
+    description: >
+      Literature using Bass diffusion, system dynamics, stock-flow, technology
+      diffusion, and market-transition models for electric vehicle uptake.
+  - name: Discrete choice and hybrid choice EV adoption models
+    category: Consumer choice
+    description: >
+      Literature using multinomial/nested/mixed logit, hybrid choice, stated
+      preference, revealed preference, and latent attitudes to model electric
+      vehicle purchase choice.
+  - name: Social network and peer effects EV adoption models
+    category: Social influence
+    description: >
+      Literature modelling peer effects, neighbourhood effects, contagion,
+      threshold dynamics, social learning, visibility, and word-of-mouth in EV
+      adoption.
+  - name: Charging infrastructure and spatial EV adoption models
+    category: Infrastructure and spatial models
+    description: >
+      Literature integrating charging station availability, range anxiety,
+      accessibility, geography, land use, and regional heterogeneity into EV
+      adoption models.
+  - name: Policy and total cost of ownership EV adoption models
+    category: Policy and economics
+    description: >
+      Literature modelling subsidies, taxes, fuel prices, carbon policy, vehicle
+      operating costs, charging prices, total cost of ownership, and policy
+      scenarios in EV adoption.

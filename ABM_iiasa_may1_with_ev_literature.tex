@@ -1,0 +1,573 @@
+% !TEX TS-program = pdflatex
+% !TEX encoding = UTF-8 Unicode
+
+% This is a simple template for a LaTeX document using the "article" class.
+% See "book", "report", "letter" for other types of document.
+
+\documentclass[11pt]{article} % use larger type; default would be 10pt
+
+\usepackage[utf8]{inputenc} % set input encoding (not needed with XeLaTeX)
+\usepackage[T1]{fontenc}
+
+%%% Examples of Article customizations
+% These packages are optional, depending whether you want the features they provide.
+% See the LaTeX Companion or other references for full information.
+
+%%% PAGE DIMENSIONS
+\usepackage{geometry} % to change the page dimensions
+\geometry{a4paper} % or letterpaper (US) or a5paper or....
+% \geometry{margin=2in} % for example, change the margins to 2 inches all round
+% \geometry{landscape} % set up the page for landscape
+%   read geometry.pdf for detailed page layout information
+
+\usepackage{graphicx} % support the \includegraphics command and options
+
+% \usepackage[parfill]{parskip} % Activate to begin paragraphs with an empty line rather than an indent
+
+%%% PACKAGES
+\usepackage{booktabs} % for much better looking tables
+\usepackage{array} % for better arrays (eg matrices) in maths
+\usepackage{paralist} % very flexible & customisable lists (eg. enumerate/itemize, etc.)
+\usepackage{verbatim} % adds environment for commenting out blocks of text & for better verbatim
+\usepackage{subfig} % make it possible to include more than one captioned figure/table in a single float
+% These packages are all incorporated in the memoir class to one degree or another...
+
+%%% HEADERS & FOOTERS
+\usepackage{fancyhdr} % This should be set AFTER setting up the page geometry
+\pagestyle{fancy} % options: empty , plain , fancy
+\renewcommand{\headrulewidth}{0pt} % customise the layout...
+\lhead{}\chead{}\rhead{}
+\lfoot{}\cfoot{\thepage}\rfoot{}
+
+%%% SECTION TITLE APPEARANCE
+\usepackage{sectsty}
+\allsectionsfont{\sffamily\mdseries\upshape} % (See the fntguide.pdf for font help)
+% (This matches ConTeXt defaults)
+
+%%% ToC (table of contents) APPEARANCE
+\usepackage[nottoc,notlof,notlot]{tocbibind} % Put the bibliography in the ToC
+\usepackage[titles,subfigure]{tocloft} % Alter the style of the Table of Contents
+\renewcommand{\cftsecfont}{\rmfamily\mdseries\upshape}
+\renewcommand{\cftsecpagefont}{\rmfamily\mdseries\upshape} % No bold!
+
+\usepackage{amsfonts}
+%% The amssymb package provides various useful mathematical symbols
+\usepackage{amssymb}
+%% The amsmath package provides various useful equation environments.
+\usepackage{amsmath}
+
+\usepackage{xurl}
+\usepackage{hyperref}
+%\usepackage{pagesInBib}
+
+
+%%% END Article customizations
+
+%%% The "real" document content comes below...
+
+\title{An agent-based model for electric vehicles adoption - A tri-dimensional perspective of sustainable consumption behaviors}
+\author{The Author}
+%\date{} % Activate to display a given date or no date (if empty),
+         % otherwise the current date is printed 
+
+\begin{document}
+\maketitle
+
+
+
+\section{Introduction}
+
+In the present research proposal, we intent to design an explanatory project 
+to study human behavior change towards sustainability issue in socio-economics systems.
+Using dynamic computer simulation modelling, the aim of our work is to develop an agent-based model (ABM) 
+for electric vehicles (EVs) adoption.\\
+
+In Behavioral Economics it is assumed that  economic agents (consumers, producers, managers) 
+behave like human beings based on the bounded rationality principle (\cite{Simon}) and
+its behaviors are understood within the prospect theory (\cite{KahnemanTversky2}, \cite{KahnemanTversky1}). 
+Kahneman and Tversky developed a descriptive theory to explain human decision-making under uncertainty
+through an inductive reasoning from empirical observations.\\
+
+In Behavioral Economics the individual agents instead of econs (i.e. "Homo economicus") are heterogeneous agents 
+who are influenced by psychological, cognitive, emotional, cultural and social factors. 
+In this view "consumer decisions are contextual and affected
+by psychological processes (or cognitive biases) such as habit, social norms, bounded rationality
+(where decisions are limited by our own cognitive limitations and information access), loss aversion
+(where people fear losses much more than gains), cognitive depletion (where we have a limited
+pool of self-control and willpower), temporal constraints (where time pressures distort decisions),
+anchoring (where a first piece of information can bias a decision), and peer influence, to name
+just some of the most important." (\cite{Rourke}).\\
+
+Our goal is to analyse the evolution of electric vehicles (EVs) adoption.\\
+
+
+EV adoption is influenced by a range of drivers such as incentives, nudges and barriers. 
+In the decision-making process, on the demand-side, the main chalenge  is to change the way
+ in which EV adoption can be understood, predicted, and managed 
+by integrating research knowledge from three dimensions: economy, ecology and social, known as 
+the triple bottom line (\cite{Elkington}). \\
+
+
+First, in the economic dimension, vehicle purchase price is the main variable, which is depended
+of the vehicle technical attributes and its cost structure (namely, battery cost). However, 
+on the supply-side and government, several behavioral interventions on 
+financial incentives,  decarbonization mandates, free parking and nudging
+can boost EV adoption.\\
+
+The theoretical and empirical studies show that small changes to the decision-making environment 
+can significantly alter choices. This insight suggests the use of the choice architecture to promote 
+behavior change in consumption patterns. 
+According to Thaler and Sunstein (\cite{ThalerSunstein}), 
+a nudge is "any aspect of the choice architecture that alters people's behavior predictably 
+without forbidding any option of significantly changing their economic incentives".  
+On the supply-side several behavioral interventions has been designed to help consumers 
+to make choices more susteinable in their complex decion-making process in the marketplace. 
+In fact, producers redesign the environment through choice architecture in order to have an effective
+impact on the consumer's choices.\\
+
+
+
+Second, the environmental dimension includes behavioural variables. For instance,
+variables like environmental awareness, range anxiety and charging availability are 
+essencial in order to fill "intention-behavior gap". In fact, it underscores the need for multi-dimensional 
+approaches that integrate psychological, social, and contextual factors to better capture the 
+complexity of consumer behavior in the sustainability transition.\\
+
+Third, the social norms are an indispensable driver in the decision-making process.\\
+
+
+
+
+
+
+
+
+
+
+\newpage
+
+\section{Literature Review: Similar EV Adoption Models}
+
+\subsection{Scope}
+
+The literature on EV adoption models is broad, but six model families are most
+relevant for extending an affordance landscape model:
+
+\begin{enumerate}
+    \item Agent-based and microsimulation models.
+    \item Diffusion and system dynamics models.
+    \item Discrete choice and hybrid choice models.
+    \item Social network and peer-effect models.
+    \item Charging infrastructure and spatial adoption models.
+    \item Policy and total cost of ownership models.
+\end{enumerate}
+
+\subsection{High-Level Findings}
+
+EV adoption is usually not modeled as a single consumer-choice event. The
+stronger models combine several mechanisms: household heterogeneity, price and
+total-cost barriers, charging access, social visibility, policy incentives,
+technology learning, and vehicle replacement timing. For an affordance model,
+the most transferable idea is to treat EV adoption as the result of both
+objective action opportunities and perceived feasibility.
+
+The closest analogue to the current affordance model is the agent-based EV
+adoption literature. Studies such as Eppstein et al. on PHEV market penetration,
+McCoy and Lyons on Irish microsimulation, Brown's mixed-logit ABM, and Kangur et
+al.'s psychologically grounded ABM all represent heterogeneous agents who update
+or act under social and contextual influence. Useful sources include
+Eppstein et al. \cite{eppstein2011}, McCoy and Lyons \cite{mccoy2014},
+Brown \cite{brown2013}, and Kangur et al. \cite{kangur2017}.
+
+Aggregate diffusion and system dynamics models are useful for feedback
+structure, not micro-behavioral detail. They emphasize reinforcing loops among
+adoption, infrastructure, cost reductions, legitimacy, and policy support.
+Representative sources include
+Struben and Sterman \cite{struben2008}, Shepherd et al. \cite{shepherd2012},
+Pasaoglu et al. \cite{pasaoglu2016}, and the review by Gnann et al.
+\cite{gnann2018}.
+
+Discrete choice and hybrid choice models provide the strongest empirical
+foundation for purchase probabilities. They estimate willingness to pay for
+price, range, charging time, fuel/electricity cost, infrastructure, incentives,
+and latent attitudes. Representative work includes Brownstone, Bunch, and Train
+on joint RP/SP mixed logit \cite{brownstone2000}, Hidrue et al. on willingness
+to pay \cite{hidrue2011}, Bolduc et al. on hybrid choice
+\cite{bolduc2008}, Glerum et al. on hybrid choice \cite{glerum2014},
+Helveston et al. on U.S. and China preferences \cite{helveston2015}, Kim et
+al. on social influences and latent attitudes \cite{kim2014}, and Axsen et al.
+on lifestyle heterogeneity \cite{axsen2015}.
+
+Social network and peer-effect studies show that EV uptake is socially
+interdependent. Peer adoption, local visibility, word of mouth, and perceived
+normality shift the effective choice set. This maps directly onto social
+learning in the affordance model. Useful sources include
+McCoy and Lyons \cite{mccoy2014}, Kangur et al. \cite{kangur2017}, Liu et al.
+\cite{liu2017}, Hsu et al. \cite{hsu2013}, and Edelenbosch et al.
+\cite{edelenbosch2018}.
+
+Charging infrastructure and spatial adoption models are central for an
+affordance framing. Charging availability is not just an explanatory variable;
+it is a local opportunity structure. Stronger studies distinguish charger
+counts, accessibility, fast-charging corridors, home charging, land-use context,
+and spatial spillovers. Representative sources include
+Sierzchula et al. \cite{sierzchula2014}, Li et al. \cite{li2017},
+Narassimhan and Johnson \cite{narassimhan2018}, White et al.
+\cite{white2022}, and Qian et al. \cite{qian2024}.
+
+Policy and total cost of ownership models are the best source for cost
+mechanisms. They translate purchase subsidies, taxes, fuel prices, electricity
+prices, charging costs, depreciation, maintenance, and vehicle lifetime into
+adoption conditions. Useful sources include
+Langbroek et al. \cite{langbroek2016}, Danielis et al.
+\cite{danielis2018}, M\"{u}nzel et al. \cite{munzel2019}, and Noll et al.
+\cite{noll2024}.
+
+\subsection{Transferable Mechanisms For An Affordance-Based EV ABM}
+
+The most useful model design is modular:
+
+\begin{enumerate}
+    \item Affordance layer: local charging access, home charging, public
+    charging, fast-charging corridors, dealership/model availability, parking
+    access, and financial affordability.
+    \item Personal-state layer: environmental orientation, innovation affinity,
+    risk tolerance, range anxiety, price sensitivity, and EV familiarity.
+    \item Choice layer: probability of EV purchase conditional on replacement
+    need, affordability, charging feasibility, and perceived usefulness.
+    \item Social layer: peer exposure, neighborhood visibility, word of mouth,
+    and social norm updating.
+    \item Policy layer: purchase subsidies, taxes, fuel/electricity prices,
+    charging infrastructure support, and information campaigns.
+    \item Feedback layer: adoption increases visibility, encourages charger
+    rollout, reduces perceived risk, and may reduce costs through technology
+    learning.
+\end{enumerate}
+
+For the existing Mesa affordance model, the most natural extension is not to
+replace the behavior rule with a full vehicle-choice model immediately. A safer
+first step is to add EV-specific affordance fields and let them modify the
+probability of pro-EV behavior:
+
+\begin{verbatim}
+effective_EV_propensity =
+    personal_EV_state
+    + peer_exposure_effect
+    + charging_affordance_effect
+    - price_or_TCO_barrier
+    - range_anxiety_barrier
+\end{verbatim}
+
+This preserves the affordance logic while allowing empirical mechanisms from EV
+adoption models to enter as interpretable modules.
+
+\subsection{Specific Design Guidance}
+
+For price mechanisms, use TCO literature to represent cost as more than upfront
+price. Include purchase price, subsidy, expected fuel savings, electricity or
+charging price, annual mileage, maintenance, home charger cost, and depreciation
+where data are available. Price should affect feasibility and adoption
+probability, not simply subtract from environmental attitude.
+
+For infrastructure, avoid using only a global charger count. Treat charging as a
+spatial affordance with home access, nearby public access, destination access,
+fast-charging corridor access, reliability, and congestion if possible.
+
+For social learning, use local adoption exposure or network-neighbor adoption to
+change perceived feasibility, risk, and normality. Peer effects should be
+allowed to amplify infrastructure and policy effects.
+
+For heterogeneity, represent households by at least income or budget, dwelling
+type, annual mileage, car replacement timing, environmental preference, and
+innovation affinity. These are repeatedly important across choice, ABM, TCO, and
+infrastructure studies.
+
+\subsection{Key Gaps In The Literature}
+
+Several gaps are relevant for a new research contribution:
+
+\begin{enumerate}
+    \item Many models still weakly connect micro-level social influence with
+    spatial charging access.
+    \item Used EV markets, resale value, vehicle availability, and supply
+    constraints are under-modeled.
+    \item Home charging, renter status, multifamily housing, and equity
+    constraints are often too coarse.
+    \item Public charging is often represented as station count, not
+    reliability, congestion, price, or practical accessibility.
+    \item Preference updating after trial, ownership experience, and peer
+    information remains simplified.
+    \item Policy interactions are usually clearer in system dynamics and TCO
+    models than in household-level ABMs.
+\end{enumerate}
+
+\newpage
+
+\section{Methodology}
+
+We will explore SCB as an evolving complex socio-economic system within the theory of complexity,
+callet it complexity economics ().\\
+
+The ABMs provide useful tools to take advantage of a more realist description about 
+human decision-making in the Behavioral Economics. \\
+
+In this framework, agents has adaptive and reflexive behavior and their interactions in a market 
+are influenced by social networks and environments. In this way, the aggregation of micro-level individual
+decisions give rise to macro-level behaviors. It means that the bottom-up approach is essential for
+capturing emergent trends and phenomena observed in markets.
+
+\newpage
+
+
+\begin{thebibliography}{99.}%
+% and use \bibitem to create references.
+%
+% Use the following syntax and markup for your references if
+% the subject of your book is from the field
+% "Mathematics, Physics, Statistics, Computer Science"
+
+\bibitem{Elkington}
+Elkington, J. (1997) Cannibals with Forks: The Triple Bottom Line of 21st Century 
+Business. Capstone, Oxford. 
+
+\bibitem{Geiger}
+Geiger, S.M., Fischer, D., Schrader, U., (2018). Measuring what matters in sustainable 
+consumption: an integrative framework for the selection of relevant behaviors. 
+Sustainable Dev. 26 (1), 18--33.
+\url{https://doi.org/10.1002/sd.1688}
+
+\bibitem{Kahneman}
+Kahneman, D. (2011). Thinking, fast and slow. Farrar, Straus and Giroux, New York.
+
+\bibitem{KahnemanTversky2}
+Kahneman, D., \& Tversky, A. (1972). Subjective probability: A judgment of representativeness.
+Cognitive Psychology, 3 (3), 430--454. 
+\url{https://doi.org/10.1016/0010-0285(72)90016-3}
+
+\bibitem{KahnemanTversky1}
+Kahneman, D., \& Tversky, A. (1979). Prospect Theory: An Analysis of Decision under Risk. Econometrica, 
+47 (2), 263--291. 
+\url{https://doi.org/10.2307/1914185}
+
+\bibitem{Rourke}
+O' Rourke, Dara, Lollo, Niklas (2015) Transforming Consumption: From Decoupling, to Behavior Change, to System Changes for Sustainable Consumption. 
+Annual Review of Environment and Resources, 40, 233--259 
+\url{doi:10.1146/annurev-environ-102014-021224}
+
+
+\bibitem{Secchi}
+Secchi, D., Grimm, Herath, D. B., Homberg, F. (2024). Modelling and Theorizing with 
+Agent-Based Sustainable Development. Environmental Modelling \& Software 
+\url{10.1016/j.envsoft.2023.105891}
+
+\bibitem{Tversky}
+Tversky, A., Slovic, P., \& Kahneman, D. (1990). The cause of preference reversal. 
+American Economic Review, 80, 204--217.
+
+\bibitem{Syed}
+Syed, S., Acquaye, A., Khalfan, M.M., Obuobisa-Darko, T., \& Yamoah, F. (2024). 
+Decoding Sustainable Consumption Behavior: A Systematic Review of Theories and 
+Models and Provision of a Guidance Framework. Resources, Conservation \& 
+Recycling Advances.
+
+\bibitem{Simon}
+Simon, H. A. (1955). A Behavioral Model of Rational Choice. Quarterly Journal of Economics, 
+69 (1), 99--118.  
+\url{https://doi.org/10.2307/1884852}
+
+\bibitem{ThalerSunstein}
+Thaler, R. H., \& Sunstein, C. R. (2008). Nudge: Improving decisions about health, wealth, and happiness.
+Yale University Press, New Haven.
+
+\bibitem{UN2015}
+United Nations Environment Programme: Annual Report 2015.
+\url{https://wedocs.unep.org/items/e478bc19-5dcc-4869-9e6d-8565b46bdfc2}
+
+
+% References imported from EV_ADOPTION_MODELS_REVIEW_body.tex.
+\bibitem{axsen2015}
+Axsen, J., Bailey, J., \& Castro, M. A. (2015).
+Preference and lifestyle heterogeneity among potential plug-in electric vehicle
+buyers.
+\emph{Energy Economics}, 50, 190--201.
+\href{https://doi.org/10.1016/j.eneco.2015.05.003}{doi:10.1016/j.eneco.2015.05.003}.
+
+\bibitem{bolduc2008}
+Bolduc, D., Boucher, N., \& Alvarez-Daziano, R. (2008).
+Hybrid choice modeling of new technologies for car choice in Canada.
+\emph{Transportation Research Record}, 2082(1), 63--71.
+\href{https://doi.org/10.3141/2082-08}{doi:10.3141/2082-08}.
+
+\bibitem{brown2013}
+Brown, M. (2013).
+Catching the PHEVer: Simulating electric vehicle diffusion with an
+agent-based mixed logit model of vehicle choice.
+\emph{Journal of Artificial Societies and Social Simulation}, 16(2), 5.
+\href{https://doi.org/10.18564/jasss.2127}{doi:10.18564/jasss.2127}.
+
+\bibitem{brownstone2000}
+Brownstone, D., Bunch, D. S., \& Train, K. (2000).
+Joint mixed logit models of stated and revealed preferences for
+alternative-fuel vehicles.
+\emph{Transportation Research Part B: Methodological}, 34(5), 315--338.
+\href{https://doi.org/10.1016/S0191-2615(99)00031-4}{doi:10.1016/S0191-2615(99)00031-4}.
+
+\bibitem{danielis2018}
+Danielis, R., Giansoldati, M., \& Rotaris, L. (2018).
+A probabilistic total cost of ownership model to evaluate the current and future
+prospects of electric cars uptake in Italy.
+\emph{Energy Policy}, 119, 268--281.
+\href{https://doi.org/10.1016/j.enpol.2018.04.024}{doi:10.1016/j.enpol.2018.04.024}.
+
+\bibitem{edelenbosch2018}
+Edelenbosch, O. Y., McCollum, D. L., Pettifor, H., Wilson, C., \& van Vuuren, D. P. (2018).
+Interactions between social learning and technological learning in electric
+vehicle futures.
+\emph{Environmental Research Letters}, 13(12), 124004.
+\href{https://doi.org/10.1088/1748-9326/aae948}{doi:10.1088/1748-9326/aae948}.
+
+\bibitem{eppstein2011}
+Eppstein, M. J., Grover, D. K., Marshall, J. S., \& Rizzo, D. M. (2011).
+An agent-based model to study market penetration of plug-in hybrid electric
+vehicles.
+\emph{Energy Policy}, 39(6), 3789--3802.
+\href{https://doi.org/10.1016/j.enpol.2011.04.007}{doi:10.1016/j.enpol.2011.04.007}.
+
+\bibitem{glerum2014}
+Glerum, A., Stankovikj, L., Th\'{e}mans, M., \& Bierlaire, M. (2014).
+Forecasting the demand for electric vehicles: Accounting for attitudes and
+perceptions.
+\emph{Transportation Science}, 48(4), 483--499.
+\href{https://doi.org/10.1287/trsc.2013.0487}{doi:10.1287/trsc.2013.0487}.
+
+\bibitem{gnann2018}
+Gnann, T., Stephens, T. S., Lin, Z., Pl\"{o}tz, P., Liu, C., \& Brokate, J. (2018).
+What drives the market for plug-in electric vehicles? A review of international
+PEV market diffusion models.
+\emph{Renewable and Sustainable Energy Reviews}, 93, 158--164.
+\href{https://doi.org/10.1016/j.rser.2018.03.055}{doi:10.1016/j.rser.2018.03.055}.
+
+\bibitem{helveston2015}
+Helveston, J. P., Liu, Y., Feit, E. M., Fuchs, E., Klampfl, E., \& Michalek, J. J. (2015).
+Will subsidies drive electric vehicle adoption? Measuring consumer preferences
+in the U.S. and China.
+\emph{Transportation Research Part A: Policy and Practice}, 73, 96--112.
+\href{https://doi.org/10.1016/j.tra.2015.01.002}{doi:10.1016/j.tra.2015.01.002}.
+
+\bibitem{hidrue2011}
+Hidrue, M. K., Parsons, G. R., Kempton, W., \& Gardner, M. P. (2011).
+Willingness to pay for electric vehicles and their attributes.
+\emph{Resource and Energy Economics}, 33(3), 686--705.
+\href{https://doi.org/10.1016/j.reseneeco.2011.02.002}{doi:10.1016/j.reseneeco.2011.02.002}.
+
+\bibitem{hsu2013}
+Hsu, C.-I., Li, H.-C., \& Lu, S.-M. (2013).
+A dynamic marketing model for hybrid electric vehicles: A case study of Taiwan.
+\emph{Transportation Research Part D: Transport and Environment}, 20, 21--29.
+\href{https://doi.org/10.1016/j.trd.2013.01.001}{doi:10.1016/j.trd.2013.01.001}.
+
+\bibitem{kangur2017}
+Kangur, A., Jager, W., Verbrugge, R., \& Bockarjova, M. (2017).
+An agent-based model for diffusion of electric vehicles.
+\emph{Journal of Environmental Psychology}, 52, 166--182.
+\href{https://doi.org/10.1016/j.jenvp.2017.01.002}{doi:10.1016/j.jenvp.2017.01.002}.
+
+\bibitem{kim2014}
+Kim, J., Rasouli, S., \& Timmermans, H. (2014).
+Expanding scope of hybrid choice models allowing for mixture of social
+influences and latent attitudes: Application to intended purchase of electric
+cars.
+\emph{Transportation Research Part A: Policy and Practice}, 69, 71--85.
+\href{https://doi.org/10.1016/j.tra.2014.08.016}{doi:10.1016/j.tra.2014.08.016}.
+
+\bibitem{langbroek2016}
+Langbroek, J. H. M., Franklin, J. P., \& Susilo, Y. O. (2016).
+The effect of policy incentives on electric vehicle adoption.
+\emph{Energy Policy}, 94, 94--103.
+\href{https://doi.org/10.1016/j.enpol.2016.03.050}{doi:10.1016/j.enpol.2016.03.050}.
+
+\bibitem{li2017}
+Li, S., Tong, L., Xing, J., \& Zhou, Y. (2017).
+The market for electric vehicles: Indirect network effects and policy design.
+\emph{Journal of the Association of Environmental and Resource Economists},
+4(1), 89--133.
+\href{https://doi.org/10.1086/689702}{doi:10.1086/689702}.
+
+\bibitem{liu2017}
+Liu, C., Roberts, M. C., \& Sioshansi, R. (2017).
+Spatial effects on hybrid electric vehicle adoption.
+\emph{Transportation Research Part D: Transport and Environment}, 52, 85--97.
+\href{https://doi.org/10.1016/j.trd.2017.02.014}{doi:10.1016/j.trd.2017.02.014}.
+
+\bibitem{mccoy2014}
+McCoy, D., \& Lyons, S. (2014).
+Consumer preferences and the influence of networks in electric vehicle
+diffusion: An agent-based microsimulation in Ireland.
+\emph{Energy Research \& Social Science}, 3, 89--101.
+\href{https://doi.org/10.1016/j.erss.2014.07.008}{doi:10.1016/j.erss.2014.07.008}.
+
+\bibitem{munzel2019}
+M\"{u}nzel, C., Pl\"{o}tz, P., Sprei, F., \& Gnann, T. (2019).
+How large is the effect of financial incentives on electric vehicle sales? A
+global review and European analysis.
+\emph{Energy Economics}, 84, 104493.
+\href{https://doi.org/10.1016/j.eneco.2019.104493}{doi:10.1016/j.eneco.2019.104493}.
+
+\bibitem{narassimhan2018}
+Narassimhan, E., \& Johnson, C. (2018).
+The role of demand-side incentives and charging infrastructure on plug-in
+electric vehicle adoption: Analysis of US states.
+\emph{Environmental Research Letters}, 13(7), 074032.
+\href{https://doi.org/10.1088/1748-9326/aad0f8}{doi:10.1088/1748-9326/aad0f8}.
+
+\bibitem{noll2024}
+Noll, B., Schmidt, T. S., \& Egli, F. (2024).
+Managing trade-offs between electric vehicle taxation and adoption.
+\emph{Cell Reports Sustainability}, 1(9), 100130.
+\href{https://doi.org/10.1016/j.crsus.2024.100130}{doi:10.1016/j.crsus.2024.100130}.
+
+\bibitem{pasaoglu2016}
+Pasaoglu, G., Harrison, G., Jones, L., Hill, A., Beaudet, A., \& Thiel, C. (2016).
+A system dynamics based market agent model simulating future powertrain
+technology transition: Scenarios in the EU light duty vehicle road transport
+sector.
+\emph{Technological Forecasting and Social Change}, 104, 133--146.
+\href{https://doi.org/10.1016/j.techfore.2015.11.028}{doi:10.1016/j.techfore.2015.11.028}.
+
+\bibitem{qian2024}
+Qian, L., Zhang, H., Chen, Y., \& Xiao, Y. (2024).
+Spatial cross-side network effect of charging stations on electric vehicle
+adoption.
+\emph{Transportation Research Part D: Transport and Environment}, 133, 104400.
+\href{https://doi.org/10.1016/j.trd.2024.104400}{doi:10.1016/j.trd.2024.104400}.
+
+\bibitem{shepherd2012}
+Shepherd, S., Bonsall, P., \& Harrison, G. (2012).
+Factors affecting future demand for electric vehicles: A model based study.
+\emph{Transport Policy}, 20, 62--74.
+\href{https://doi.org/10.1016/j.tranpol.2011.12.006}{doi:10.1016/j.tranpol.2011.12.006}.
+
+\bibitem{sierzchula2014}
+Sierzchula, W., Bakker, S., Maat, K., \& van Wee, B. (2014).
+The influence of financial incentives and other socio-economic factors on
+electric vehicle adoption.
+\emph{Energy Policy}, 68, 183--194.
+\href{https://doi.org/10.1016/j.enpol.2014.01.043}{doi:10.1016/j.enpol.2014.01.043}.
+
+\bibitem{struben2008}
+Struben, J., \& Sterman, J. D. (2008).
+Transition challenges for alternative fuel vehicle and transportation systems.
+\emph{Environment and Planning B: Planning and Design}, 35(6), 1070--1097.
+\href{https://doi.org/10.1068/b33022t}{doi:10.1068/b33022t}.
+
+\bibitem{white2022}
+White, L. V., Carrel, A. L., Shi, W., \& Sintov, N. D. (2022).
+Why are charging stations associated with electric vehicle adoption? Untangling
+effects in three United States metropolitan areas.
+\emph{Energy Research \& Social Science}, 89, 102663.
+\href{https://doi.org/10.1016/j.erss.2022.102663}{doi:10.1016/j.erss.2022.102663}.
+
+\end{thebibliography}
+
+
+\end{document}
