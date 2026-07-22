@@ -73,15 +73,55 @@ stable.
 
 Still open:
 
-1. Calibration against real EV adoption data (a Portugal target series is now
-   available; see above — no calibration run has been performed against it
-   yet).
-2. Charger reliability, charger types, and realistic geography.
-3. Used-vehicle market representation.
-4. Re-running the published sensitivity sweeps (subsidy, fuel price, charger
+1. Charger reliability, charger types, and realistic geography.
+2. Used-vehicle market representation.
+3. Re-running the published sensitivity sweeps (subsidy, fuel price, charger
    expansion) with multiple seeds and confidence bands — the current draft
    figures are single-seed runs and some of the reported non-monotonicities
    may be seed noise rather than genuine threshold effects.
+
+## Portugal calibration (2026-07-22)
+
+`EVParams` defaults (`income_mean`, `income_sd`, `income_distribution`,
+`ev_purchase_price`, `ice_purchase_price`, `ev_price_learning_model`,
+`ev_wright_learning_rate`, `ev_wright_reference_adopters`,
+`charger_expansion_rate`, `adoption_threshold`) were recalibrated by a random
++ local-refinement search (`scripts/calibrate_portugal.py`) against the
+Portugal BEV fleet-share target (`outputs/portugal_ev_stock_share_targets.csv`,
+2010–2024). The `"portugal_2010_2024"` scenario (`EVParams.from_scenario`)
+additionally applies the calibrated `subsidy_schedule` and the grid/agent
+scale the search was run at:
+
+```bash
+python scripts/run_ev_experiments.py --scenarios portugal_2010_2024 --seeds 1 2 3 4 5 6 7 8 9 10 11 12 --steps 14 --targets outputs/portugal_ev_stock_share_targets.csv
+```
+
+RMSE ≈ 0.003 (12-seed mean) against target values spanning 0.02%–3.3%. The
+model curve tracks the target's near-zero early years and its final-year
+level closely, but rises faster than the target through the middle of the
+period (a "backlog-then-burst" artifact: agents whose vehicle came up for
+replacement early but couldn't yet afford an EV keep re-evaluating every
+subsequent step, so a wave of them clears the affordability bar together as
+the subsidy ramp and Wright's-law price decline improve conditions, rather
+than diffusing as smoothly as the real market did). This is a documented,
+understood limitation of the one-shot-per-replacement-cycle mechanism, not a
+bug — treat the fit as "right order of magnitude and right endpoints,
+smoother in reality than in the model," not an exact reproduction.
+
+**Important scale-dependency**: `charger_expansion_rate` is an absolute
+chargers-per-step rate, not scaled to `number_of_agents`, so the fit is tied
+to the `"portugal_2010_2024"` scenario's `number_of_agents=4000` on its
+60×60 grid. Running the same parameters at a different population size (as
+an ad hoc validation during calibration did, at 8,000 agents) changes the
+charger-to-population ratio and materially worsens the fit (RMSE ≈ 0.012 at
+8,000 agents vs ≈ 0.003 at 4,000) — this is expected, not a discrepancy to
+chase, but it means the calibration should not be assumed to hold at an
+arbitrary agent count without rescaling infrastructure parameters.
+
+Two existing tests (`test_supply_cap_limits_adoptions_per_step`,
+`test_supply_blocked_agents_adopt_later`) explicitly set
+`income_budget_share=1.0` to disable the new affordability gate, since they
+test the market supply-cap queue in isolation and predate this calibration.
 
 ## Model-review fixes (2026-07-22)
 

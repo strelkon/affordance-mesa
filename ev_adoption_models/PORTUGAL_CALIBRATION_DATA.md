@@ -64,7 +64,36 @@ Source: [V2Charge](https://v2charge.com/integration-mobi-e-portugal/); [Portugal
 - 2023: >4,450 publicly accessible charging stations.
 - Usage: >487,500 charging sessions in May 2024 alone; >3.276M sessions in the first 7 months of 2024 (+67% YoY) — this rapid usage growth is a proxy for the congestion dynamics EVAM's `charger_capacity`/congestion mechanism is designed to capture, and could motivate a non-infinite `charger_capacity` calibration run.
 
-## 6. Caveats
+## 6. Calibration result (2026-07-22)
+
+`EVParams` defaults were recalibrated against the Section 2 stock-share
+series via a random-search + local-refinement fit
+(`scripts/calibrate_portugal.py`): `income_mean`/`income_sd`/
+`income_distribution`, `ev_purchase_price`, `ice_purchase_price`,
+`ev_price_learning_model`/`ev_wright_learning_rate`/
+`ev_wright_reference_adopters`, `income_budget_share`, `adoption_threshold`,
+and `charger_expansion_rate`. A dedicated `"portugal_2010_2024"` scenario
+additionally applies a smooth subsidy ramp (zero 2010–2014, linear
+EUR500→EUR4,000 2015–2024, approximating the real 2015 incentive
+reintroduction and the documented grant range) and the grid/agent scale the
+search was run at (60×60 grid, 4,000 agents, 14 steps).
+
+Result: RMSE ≈ 0.003 over 12 seeds (`python scripts/run_ev_experiments.py
+--scenarios portugal_2010_2024 --seeds 1..12 --steps 14 --targets
+outputs/portugal_ev_stock_share_targets.csv`), against target values
+spanning 0.02%–3.3%. The model reproduces the near-zero early years and the
+final-year level well; it rises faster than the target through the middle
+of the period, a "backlog-then-burst" artifact of the one-shot-per-
+replacement-cycle decision (agents who couldn't afford an EV at their first
+opportunity keep re-evaluating every subsequent step, so a wave clears the
+affordability bar together once the subsidy ramp/price decline catch up,
+rather than diffusing as smoothly as the real market did). See
+`VALIDATION.md` for the full write-up, including the scale-dependency
+caveat (the fit does not hold at other `number_of_agents` without rescaling
+`charger_expansion_rate`, since chargers are added at an absolute
+per-step rate, not one scaled to population).
+
+## 7. Caveats
 
 - The stock-share series treats the Portuguese light-vehicle fleet as constant at 5.8M across 2010–2024; the true fleet size grew somewhat over this period (ACAP/APA report slow year-on-year growth), so early-year shares above are slightly overstated and later-year shares slightly understated. Refine with year-by-year fleet totals from ACAP/INE if higher precision is needed.
 - Sales-share and stock-share numbers come from different reporting conventions (ACAP/EAFO for sales, UVE/IMT for stock) and are not perfectly reconciled against each other in the source material.

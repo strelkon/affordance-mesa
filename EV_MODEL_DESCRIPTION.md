@@ -248,18 +248,31 @@ unchanged by their presence (seeded runs are byte-identical).
 | Affordance bounds | `lower_bound_mean` (0.2), `lower_bound_sd` (0.05), `upper_bound_mean` (0.8), `upper_bound_sd` (0.05) |
 | Charging | `initial_charging_coverage` (0.0), `charger_expansion_rate` (2.0), `charger_expansion_mode` ("exogenous"), `demand_expansion_gain` (4.0), `demand_radius` (2), `charger_access_decay` (1.0), `charger_capacity` (inf), `congestion_radius` (3) |
 | Policy/prices | `subsidy` (8000), `fuel_price` (1.8), `electricity_price` (0.25), `subsidy_schedule`/`fuel_price_schedule`/`electricity_price_schedule` (None) |
-| Market/supply | `ev_supply_per_step` (inf), `ev_price_learning_model` ("linear"), `ev_price_learning_rate` (0.0), `ev_price_floor_share` (0.5), `ev_wright_learning_rate` (0.18), `ev_wright_reference_adopters` (1) |
-| Cost model | `ev_purchase_price` (35000), `ice_purchase_price` (25000), `ev_kwh_per_km` (0.18), `ice_liters_per_km` (0.07), `ev_maintenance_cost` (300), `ice_maintenance_cost` (600), `tco_years` (8), `discount_rate` (0.0) |
-| Affordability | `income_budget_share` (0.10) — hard gate, Section 5.2 |
+| Market/supply | `ev_supply_per_step` (inf), `ev_price_learning_model` ("wright", calibrated¹), `ev_price_learning_rate` (0.0, only used if `ev_price_learning_model="linear"`), `ev_price_floor_share` (0.5), `ev_wright_learning_rate` (0.23, calibrated¹), `ev_wright_reference_adopters` (10, calibrated¹) |
+| Cost model | `ev_purchase_price` (39500, calibrated¹), `ice_purchase_price` (23000, calibrated¹), `ev_kwh_per_km` (0.18), `ice_liters_per_km` (0.07), `ev_maintenance_cost` (300), `ice_maintenance_cost` (600), `tco_years` (8), `discount_rate` (0.0) |
+| Affordability | `income_budget_share` (0.10, calibrated¹) — hard gate, Section 5.2 |
 | Initial market | `initial_ev_share` (0.0), `initial_ev_clustered` (False) |
-| Decision | `adoption_threshold` (0.34), `adoption_rule` ("deterministic"), `adoption_temperature` (0.05), weights: economic 0.25 / charging 0.25 / environmental 0.25 / peer 0.15 / range anxiety 0.10, `env_score_pro_env_weight` (0.5) |
-| Agent distributions | `income_mean/sd` (30000/8000), `income_distribution` ("normal"), `annual_mileage_mean/sd` (12000/2000), `vehicle_age_min/max` (1/12), `stagger_initial_vehicle_age` (True), `replacement_interval_min/max` (6/14), `home_charging_income_weight` (0.0), trait ranges: `home_charging`/`environmental_concern`/`range_anxiety` (0.0/1.0), `price_sensitivity`/`peer_sensitivity` (0.5/1.5) |
+| Decision | `adoption_threshold` (0.085, calibrated¹), `adoption_rule` ("deterministic"), `adoption_temperature` (0.05), weights: economic 0.25 / charging 0.25 / environmental 0.25 / peer 0.15 / range anxiety 0.10, `env_score_pro_env_weight` (0.5) |
+| Agent distributions | `income_mean/sd` (9000/9000, calibrated¹), `income_distribution` ("lognormal", calibrated¹), `annual_mileage_mean/sd` (12000/2000), `vehicle_age_min/max` (1/12), `stagger_initial_vehicle_age` (True), `replacement_interval_min/max` (6/14), `home_charging_income_weight` (0.0), trait ranges: `home_charging`/`environmental_concern`/`range_anxiety` (0.0/1.0), `price_sensitivity`/`peer_sensitivity` (0.5/1.5) |
 | Social diffusion | `social_diffusion` (False), `peer_range_anxiety_relief` (0.02), `peer_concern_gain` (0.01) |
+| Grid/run | `charger_expansion_rate` (1.1, calibrated¹) |
+
+¹ Calibrated against Portugal's 2010–2024 BEV fleet-share series via
+`scripts/calibrate_portugal.py` (see `VALIDATION.md` §"Portugal calibration"
+and `ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md`), replacing earlier
+ad hoc guesses (US-scale income, `ev_price_learning_model="linear"`,
+`adoption_threshold=0.34`, `charger_expansion_rate=2.0`,
+`ev_purchase_price=35000`, `ice_purchase_price=25000`). The fit
+(RMSE ≈ 0.003) is tied to the `"portugal_2010_2024"` scenario's
+`number_of_agents=4000` on its 60×60 grid — see the scale-dependency note
+below.
 
 Scenario presets live in `SCENARIOS` (`colleague_baseline`, `no_policy`,
-`subsidy`, `fuel_price`, `charging_expansion`) and are constructed with
-`EVParams.from_scenario(name, **overrides)`; preset values are provisional
-and user-tunable. Presets do not touch the mechanism switches.
+`subsidy`, `fuel_price`, `charging_expansion`, `portugal_2010_2024`) and are
+constructed with `EVParams.from_scenario(name, **overrides)`; preset values
+are provisional and user-tunable except `portugal_2010_2024`, which
+reproduces a specific calibration fit (Section 10). Presets do not touch the
+mechanism switches.
 
 ## 7. Outputs
 
@@ -302,11 +315,14 @@ RNG-state-invariance tests (`tests/test_ev_model.py` and companions, 88 tests).
 
 ## 10. Known limitations
 
-- Preset and mechanism parameter values are provisional; no calibration
-  against real EV adoption data has been performed yet. The `--targets` hook
-  exists for it, and `ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md` /
-  `outputs/portugal_ev_stock_share_targets.csv` provide one ready-made
-  fleet-stock-share target series (Portugal, 2010–2024).
+- Defaults are calibrated against one real target (Portugal's 2010–2024 BEV
+  fleet-share series; `VALIDATION.md` §"Portugal calibration"), not
+  cross-validated against a second market or a held-out period. The fit
+  overshoots in the middle of the period (a one-shot-replacement-cycle
+  "backlog burst" artifact) and is scale-dependent on `number_of_agents` via
+  `charger_expansion_rate`; see the scenario-table footnote above. Other
+  presets (`no_policy`, `subsidy`, `fuel_price`, `charging_expansion`,
+  `colleague_baseline`) remain uncalibrated illustrative scenarios.
 - The income-budget gate (`income_budget_share`) uses `ev_tco / tco_years` as
   a proxy for "annual cost of ownership"; it is not a real amortized-loan
   calculation and does not model financing terms.

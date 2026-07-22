@@ -772,6 +772,7 @@ def test_supply_cap_limits_adoptions_per_step():
         ev_supply_per_step=1,
         subsidy=30000.0,
         adoption_threshold=0.0,
+        income_budget_share=1.0,  # isolate the supply cap from the affordability gate
         vehicle_age_min=12,
         vehicle_age_max=12,
         stagger_initial_vehicle_age=False,
@@ -798,6 +799,7 @@ def test_supply_blocked_agents_adopt_later():
         ev_supply_per_step=1,
         subsidy=30000.0,
         adoption_threshold=0.0,
+        income_budget_share=1.0,  # isolate the supply cap from the affordability gate
         vehicle_age_min=12,
         vehicle_age_max=12,
         stagger_initial_vehicle_age=False,
@@ -820,6 +822,7 @@ def test_price_learning_lowers_effective_price_with_floor():
         height=10,
         number_of_agents=20,
         initial_ev_share=0.5,
+        ev_price_learning_model="linear",
         ev_price_learning_rate=0.4,
     )
     model = EVAdoptionModel(params, seed=3)
