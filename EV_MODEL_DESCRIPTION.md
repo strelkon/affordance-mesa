@@ -300,7 +300,7 @@ All stochasticity flows through the model-seeded RNGs (`model.random`,
 `model.rng`). Every optional mechanism draws zero random numbers while
 disabled, so enabling none reproduces earlier seeded results byte-for-byte;
 the test suite pins this with same-seed dataframe-equality and
-RNG-state-invariance tests (`tests/test_ev_model.py` and companions, 88 tests).
+RNG-state-invariance tests (`tests/test_ev_model.py` and companions, 90 tests).
 
 ## 9. Workflows
 

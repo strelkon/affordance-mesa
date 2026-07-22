@@ -159,6 +159,8 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         if weight <= 0.0:
             return raw
 
+        # Logistic of the normal z-score: a heuristic rank proxy, not the
+        # exact percentile when income_distribution is lognormal.
         z = (income - p.income_mean) / max(p.income_sd, 1e-9)
         income_percentile = 1.0 / (1.0 + math.exp(-max(min(z, 60.0), -60.0)))
         blended = (1.0 - weight) * raw + weight * income_percentile
@@ -224,11 +226,11 @@ class EVAdoptionModel(AffordanceLandscapeModel):
     def _effective_ev_price(self) -> float:
         """EV list-price decline as adoption accumulates.
 
-        ``ev_price_learning_model="linear"`` (default) is a simple
-        linear-in-adoption-share proxy; ``ev_price_learning_rate=0`` keeps
-        the list price exactly. ``"wright"`` uses Wright's-law experience
-        curve, ``price(N) = price(N_0) * (N / N_0) ** -b`` with
+        ``ev_price_learning_model="wright"`` (default) uses Wright's-law
+        experience curve, ``price(N) = price(N_0) * (N / N_0) ** -b`` with
         ``b = -log2(1 - learning_rate)``, keyed on cumulative adopters.
+        ``"linear"`` is a simple linear-in-adoption-share proxy;
+        ``ev_price_learning_rate=0`` keeps the list price exactly.
         Both are floored at ``ev_price_floor_share`` of the list price.
         """
 
@@ -242,7 +244,11 @@ class EVAdoptionModel(AffordanceLandscapeModel):
             reference = max(int(self.params.ev_wright_reference_adopters), 1)
             cumulative = max(self.ev_adoption_count, reference)
             learning_rate = self.params.ev_wright_learning_rate
-            exponent = -math.log2(1.0 - learning_rate) if learning_rate < 1.0 else float("inf")
+            if not 0.0 <= learning_rate < 1.0:
+                raise ValueError(
+                    f"ev_wright_learning_rate must be in [0, 1), got {learning_rate!r}"
+                )
+            exponent = -math.log2(1.0 - learning_rate)
             price = base * (cumulative / reference) ** (-exponent)
         else:
             raise ValueError(f"Unknown ev_price_learning_model {model_name!r}")

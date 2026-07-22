@@ -1273,6 +1273,33 @@ def test_no_schedule_uses_flat_scalar_price():
     assert model.current_fuel_price == pytest.approx(2.2)
 
 
+def test_electricity_price_schedule_overrides_scalar_and_holds_last_value():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        electricity_price=0.25,
+        electricity_price_schedule=(0.10, 0.20),
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    assert model.current_electricity_price == pytest.approx(0.10)
+    model.step()
+    assert model.current_electricity_price == pytest.approx(0.20)
+    model.step()
+    assert model.current_electricity_price == pytest.approx(0.20)
+
+
+def test_wright_learning_rate_out_of_range_raises():
+    params = EVParams(width=5, height=5, number_of_agents=3, ev_price_learning_model="wright")
+    model = EVAdoptionModel(params, seed=42)
+
+    for bad_rate in (-0.1, 1.0, 1.5):
+        model.params.ev_wright_learning_rate = bad_rate
+        with pytest.raises(ValueError):
+            model._effective_ev_price()
+
+
 def test_subsidy_schedule_feeds_into_ev_cost():
     params = EVParams(
         width=5,

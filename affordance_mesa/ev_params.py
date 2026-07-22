@@ -88,10 +88,13 @@ class EVParams(AffordanceModelParams):
     peer_weight: float = 0.15
     range_anxiety_weight: float = 0.10
 
-    # Calibrated to Portugal-scale household income (see
-    # ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md and
-    # scripts/calibrate_portugal.py) rather than the original US-scale guess
-    # (mean 30000, sd 8000).
+    # Effective purchasing-power parameters fitted to the Portugal adoption
+    # curve (scripts/calibrate_portugal.py) -- NOT an empirical Portuguese
+    # income distribution (mean household disposable income there is roughly
+    # EUR 20k+). The adoption curve only constrains the product of income
+    # scale and income_budget_share against annual EV cost, so these are
+    # jointly identified with income_budget_share; to use empirical incomes,
+    # pin income_mean/sd to Eurostat/INE data and refit income_budget_share.
     income_mean: float = 9000.0
     income_sd: float = 9000.0
     # "normal" (backward-compatible truncated normal) or "lognormal"

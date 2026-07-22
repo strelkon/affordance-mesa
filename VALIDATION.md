@@ -147,4 +147,4 @@ implemented (see `EV_MODEL_DESCRIPTION.md` for full formulas):
   (`discount_rate`); lognormal income option; income-correlated home-charging
   access; per-step subsidy/fuel-price/electricity-price schedules.
 
-88 tests pass (`pytest`), up from 69 before this round.
+90 tests pass (`pytest`), up from 69 before this round.
