@@ -39,19 +39,36 @@ Two positions with distinct meanings:
 Inherited dynamic states: `pro_env`, `non_env` (bounded by per-agent
 `lower_bound`/`upper_bound`, updated by affordance learning).
 
-EV attributes sampled at initialization: `income`, `annual_mileage`
-(non-negative normals), `vehicle_age`, `replacement_interval` (uniform
-integers), and five traits in [0, 1]: `home_charging_access`,
-`environmental_concern`, `price_sensitivity`, `range_anxiety`,
-`peer_sensitivity`. `environmental_concern` and `range_anxiety` are fixed
-unless `social_diffusion` is enabled (Section 5.5).
+EV attributes sampled at initialization: `income` (normal or lognormal,
+`income_distribution`), `annual_mileage` (non-negative normal),
+`vehicle_age`, `replacement_interval` (uniform integers — see the staggering
+note below), `home_charging_access`, `environmental_concern`, `range_anxiety`
+in [0, 1], and `price_sensitivity`, `peer_sensitivity` in **[0.5, 1.5]** (so
+the adoption score can multiply by the trait directly rather than the old
+`0.5 + trait` expression; the distribution is unchanged, only the
+parameterization is simpler). `environmental_concern` and `range_anxiety` are
+fixed unless `social_diffusion` is enabled (Section 5.5).
+
+`vehicle_age` is sampled in `[0, replacement_interval - 1]` by default
+(`stagger_initial_vehicle_age=True`), so the initial population does not
+start with a synchronized replacement burst at step 1. Set
+`stagger_initial_vehicle_age=False` to sample `vehicle_age` independently
+from `vehicle_age_min`/`vehicle_age_max` instead (useful to force immediate
+evaluation in tests/scenarios).
+
+`home_charging_access` optionally correlates with `income`
+(`home_charging_income_weight`, default 0.0 = fully independent uniform, as
+before): the sampled value is blended toward a logistic percentile of income
+around `income_mean`/`income_sd`, reflecting that home-charging access
+(private garage/driveway) is not independent of income in practice.
 
 Adoption state: `ev_adopted` (one-shot; adopting resets `vehicle_age` to 0).
 
 Decision telemetry (recorded on every evaluation): `last_adoption_score`,
 `last_economic_score`, `last_charging_score`, `last_environmental_score`,
 `last_peer_adoption_share`, `last_range_anxiety_penalty`, `last_ev_tco`,
-`last_ice_tco`, `last_tco_gap`, `last_adoption_probability`, and
+`last_ice_tco`, `last_tco_gap`, `last_adoption_probability`,
+`last_affordable` (result of the income-budget gate, Section 5.2), and
 `has_evaluated_adoption`.
 
 ### Model-level EV state
@@ -99,39 +116,60 @@ initial adopters, initial chargers, and the initial effective price.
 ### 5.1 Adoption score
 
 Evaluated only at replacement time (and re-evaluated every step thereafter
-until adoption). With parameters `p` and agent traits:
+until adoption). With parameters `p`, agent traits, and `effective_access =
+effective_charging_access[home_pos]`:
 
 ```
-ev_tco   = (effective_ev_price - subsidy)+  +  mileage * kwh_per_km * electricity_price * years  +  ev_maintenance * years
-ice_tco  = ice_purchase_price               +  mileage * l_per_km   * fuel_price       * years  +  ice_maintenance * years
+ev_tco   = (effective_ev_price - subsidy)+  +  annuity(years, discount_rate) * (mileage * kwh_per_km * electricity_price + ev_maintenance)
+ice_tco  = ice_purchase_price               +  annuity(years, discount_rate) * (mileage * l_per_km   * fuel_price       + ice_maintenance)
+# annuity(years, 0) == years, so discount_rate = 0.0 (default) reproduces the old flat-multiplication TCO exactly.
 
 tco_score            = (ice_tco - ev_tco) / ice_tco
-affordability        = min(income / ev_tco, 1)
-economic_component   = tco_score * (0.5 + price_sensitivity) + 0.1 * affordability
+economic_component   = tco_score * price_sensitivity   # price_sensitivity ~ U(0.5, 1.5)
 
-charging_score       = 0.7 * home_charging_access + 0.3 * effective_charging_access[home_pos]
-environmental_score  = (1 - w) * environmental_concern + w * pro_env
-peer_share           = share of ev_adopted among peers (Section 5.3)
+charging_score        = 0.7 * home_charging_access + 0.3 * effective_access
+environmental_score   = (1 - w) * environmental_concern + w * pro_env
+peer_share             = share of ev_adopted among peers (Section 5.3)
+range_anxiety_penalty  = range_anxiety * (1 - effective_access)  # good charging access discounts the penalty
 
 adoption_score = economic_weight      * economic_component
                + charging_weight      * charging_score
                + environmental_weight * environmental_score
-               + peer_weight          * peer_share * (0.5 + peer_sensitivity)
-               - range_anxiety_weight * range_anxiety
+               + peer_weight          * peer_share * peer_sensitivity   # peer_sensitivity ~ U(0.5, 1.5)
+               - range_anxiety_weight * range_anxiety_penalty
 ```
+
+`subsidy`, `fuel_price`, and `electricity_price` are each read from the
+model's per-step resolved value (`current_subsidy`, `current_fuel_price`,
+`current_electricity_price`; Section 5.6), which equals the flat scalar
+parameter unless a `*_schedule` sequence is supplied.
+
+There is no separate "affordability" score term (the previous
+`0.1 * min(income/ev_tco, 1)` addition was dropped — with defaults it was
+almost constant across agents and added little heterogeneity); the income
+constraint is instead enforced as a hard gate, Section 5.2.
 
 ### 5.2 Decision rule and market gate
 
-- `adoption_rule = "deterministic"` (default): adopt iff
+- `adoption_rule = "deterministic"` (default): decide adopt iff
   `adoption_score >= adoption_threshold`. Draws no random numbers.
-- `adoption_rule = "logistic"`: adopt with probability
+- `adoption_rule = "logistic"`: decide adopt with probability
   `1 / (1 + exp(-(score - threshold) / adoption_temperature))`
   (`temperature <= 0` degenerates to the step function).
 
-A positive decision must then pass the market: `request_ev_purchase()` grants
-at most `ev_supply_per_step` purchases per step. Blocked agents remain past
-their replacement interval and retry on later steps, so delivery delays
-emerge from the queue without an explicit waiting list.
+**Income-budget gate.** Independently of the score-based decision, an agent
+may adopt only if the average annual cost of EV ownership does not exceed
+`income_budget_share` (default 0.10) of its income:
+`(ev_tco / tco_years) <= income_budget_share * income`. This implements the
+"agents cannot spend more than 10% of income on an EV" affordability rule as
+an actual constraint rather than a soft score contribution. The result is
+recorded in `last_affordable` regardless of outcome, for telemetry.
+
+A score-positive **and** affordable decision must then pass the market:
+`request_ev_purchase()` grants at most `ev_supply_per_step` purchases per
+step. Blocked agents remain past their replacement interval and retry on
+later steps, so delivery delays emerge from the queue without an explicit
+waiting list.
 
 ### 5.3 Peer exposure
 
@@ -169,12 +207,35 @@ bounds. This is the only mechanism that makes these two traits dynamic.
 
 ### 5.6 Price learning and baseline market state
 
-- `effective_ev_price = max(ev_purchase_price * (1 - ev_price_learning_rate *
-  ev_adoption_share), ev_purchase_price * ev_price_floor_share)` — a linear
-  learning-curve proxy; the rate 0 default keeps the list price exactly.
-- `initial_ev_share` seeds a baseline adopted population at t = 0
-  (`initial_ev_clustered` clusters it around a random seed household by torus
-  home distance), giving row 0 an observed market state for calibration.
+`effective_ev_price` is floored at `ev_purchase_price * ev_price_floor_share`
+and computed by one of two interchangeable models
+(`ev_price_learning_model`):
+
+- `"linear"` (default): `ev_purchase_price * (1 - ev_price_learning_rate *
+  ev_adoption_share)` — a linear-in-adoption-share proxy; the rate-0 default
+  keeps the list price exactly.
+- `"wright"`: Wright's-law experience curve keyed on cumulative adopters,
+  `ev_purchase_price * (ev_adoption_count / ev_wright_reference_adopters) **
+  -b`, with `b = -log2(1 - ev_wright_learning_rate)`. `ev_wright_learning_rate`
+  is the fractional cost decline per doubling of cumulative adopters (a
+  commonly cited range for Li-ion battery packs is 0.06–0.09; anchoring to
+  the wider EV-cost literature may justify a different value).
+  `ev_wright_reference_adopters` (default 1) is `N_0`, the adopter count at
+  which price equals the list price.
+
+`initial_ev_share` seeds a baseline adopted population at t = 0
+(`initial_ev_clustered` clusters it around a random seed household by torus
+home distance), giving row 0 an observed market state for calibration.
+
+**Time-varying prices.** `subsidy`, `fuel_price`, and `electricity_price` can
+each be overridden with a `*_schedule` sequence (`subsidy_schedule`,
+`fuel_price_schedule`, `electricity_price_schedule`), indexed by step number;
+once the sequence is exhausted its last value holds for all remaining steps.
+`None` (default) keeps the flat scalar parameter. The model resolves these
+once per step into `current_subsidy`, `current_fuel_price`,
+`current_electricity_price`, which is what agents actually read — this
+supports replaying a real policy/price history (e.g. a national subsidy
+programme's year-to-year budget swings) instead of a single constant value.
 
 ## 6. Parameters (`EVParams`, defaults)
 
@@ -186,12 +247,13 @@ unchanged by their presence (seeded runs are byte-identical).
 | Run/grid | `width` (201), `height` (201), `max_steps` (20440), `number_of_agents` (100, inherited) |
 | Affordance bounds | `lower_bound_mean` (0.2), `lower_bound_sd` (0.05), `upper_bound_mean` (0.8), `upper_bound_sd` (0.05) |
 | Charging | `initial_charging_coverage` (0.0), `charger_expansion_rate` (2.0), `charger_expansion_mode` ("exogenous"), `demand_expansion_gain` (4.0), `demand_radius` (2), `charger_access_decay` (1.0), `charger_capacity` (inf), `congestion_radius` (3) |
-| Policy/prices | `subsidy` (8000), `fuel_price` (1.8), `electricity_price` (0.25) |
-| Market/supply | `ev_supply_per_step` (inf), `ev_price_learning_rate` (0.0), `ev_price_floor_share` (0.5) |
-| Cost model | `ev_purchase_price` (35000), `ice_purchase_price` (25000), `ev_kwh_per_km` (0.18), `ice_liters_per_km` (0.07), `ev_maintenance_cost` (300), `ice_maintenance_cost` (600), `tco_years` (8) |
+| Policy/prices | `subsidy` (8000), `fuel_price` (1.8), `electricity_price` (0.25), `subsidy_schedule`/`fuel_price_schedule`/`electricity_price_schedule` (None) |
+| Market/supply | `ev_supply_per_step` (inf), `ev_price_learning_model` ("linear"), `ev_price_learning_rate` (0.0), `ev_price_floor_share` (0.5), `ev_wright_learning_rate` (0.18), `ev_wright_reference_adopters` (1) |
+| Cost model | `ev_purchase_price` (35000), `ice_purchase_price` (25000), `ev_kwh_per_km` (0.18), `ice_liters_per_km` (0.07), `ev_maintenance_cost` (300), `ice_maintenance_cost` (600), `tco_years` (8), `discount_rate` (0.0) |
+| Affordability | `income_budget_share` (0.10) — hard gate, Section 5.2 |
 | Initial market | `initial_ev_share` (0.0), `initial_ev_clustered` (False) |
 | Decision | `adoption_threshold` (0.34), `adoption_rule` ("deterministic"), `adoption_temperature` (0.05), weights: economic 0.25 / charging 0.25 / environmental 0.25 / peer 0.15 / range anxiety 0.10, `env_score_pro_env_weight` (0.5) |
-| Agent distributions | `income_mean/sd` (30000/8000), `annual_mileage_mean/sd` (12000/2000), `vehicle_age_min/max` (1/12), `replacement_interval_min/max` (6/14), five trait `*_min/_max` ranges (0.0/1.0) |
+| Agent distributions | `income_mean/sd` (30000/8000), `income_distribution` ("normal"), `annual_mileage_mean/sd` (12000/2000), `vehicle_age_min/max` (1/12), `stagger_initial_vehicle_age` (True), `replacement_interval_min/max` (6/14), `home_charging_income_weight` (0.0), trait ranges: `home_charging`/`environmental_concern`/`range_anxiety` (0.0/1.0), `price_sensitivity`/`peer_sensitivity` (0.5/1.5) |
 | Social diffusion | `social_diffusion` (False), `peer_range_anxiety_relief` (0.02), `peer_concern_gain` (0.01) |
 
 Scenario presets live in `SCENARIOS` (`colleague_baseline`, `no_policy`,
@@ -203,6 +265,7 @@ and user-tunable. Presets do not touch the mechanism switches.
 
 Model reporters (per step) beyond the base model's nine: `ev_adoption_count`,
 `ev_adoption_share`, `charger_count`, `effective_ev_price`,
+`current_fuel_price`, `current_electricity_price`, `current_subsidy`,
 `ev_supply_blocked`, and means — `mean_adoption_score`, `mean_tco_gap`,
 `mean_economic_score`, `mean_charging_score`, `mean_environmental_score`,
 `mean_peer_adoption_share`, `mean_range_anxiety_penalty`, `mean_ev_tco`,
@@ -216,7 +279,7 @@ least once**; 0.0 before the first evaluation), plus all-agent means
 Agent reporters: the base four plus `ev_adopted`, `vehicle_age`, `income`,
 `home_charging_access`, `range_anxiety`, `environmental_concern`,
 `has_evaluated_adoption`, and every `last_*` telemetry value including
-`last_adoption_probability`.
+`last_adoption_probability` and `last_affordable`.
 
 ## 8. Reproducibility
 
@@ -224,7 +287,7 @@ All stochasticity flows through the model-seeded RNGs (`model.random`,
 `model.rng`). Every optional mechanism draws zero random numbers while
 disabled, so enabling none reproduces earlier seeded results byte-for-byte;
 the test suite pins this with same-seed dataframe-equality and
-RNG-state-invariance tests (`tests/test_ev_model.py` and companions, 69 tests).
+RNG-state-invariance tests (`tests/test_ev_model.py` and companions, 88 tests).
 
 ## 9. Workflows
 
@@ -240,11 +303,19 @@ RNG-state-invariance tests (`tests/test_ev_model.py` and companions, 69 tests).
 ## 10. Known limitations
 
 - Preset and mechanism parameter values are provisional; no calibration
-  against real EV adoption data has been performed yet (the `--targets` hook
-  exists for it).
+  against real EV adoption data has been performed yet. The `--targets` hook
+  exists for it, and `ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md` /
+  `outputs/portugal_ev_stock_share_targets.csv` provide one ready-made
+  fleet-stock-share target series (Portugal, 2010–2024).
+- The income-budget gate (`income_budget_share`) uses `ev_tco / tco_years` as
+  a proxy for "annual cost of ownership"; it is not a real amortized-loan
+  calculation and does not model financing terms.
 - Chargers have capacity but no reliability, type mix (AC/DC), or realistic
   geography; the grid is an abstract torus.
 - No used-vehicle market or explicit model-availability constraints beyond
   the per-step supply cap.
 - Adoption is one-shot; there is no disadoption or vehicle-to-vehicle
   replacement choice set.
+- The Wright's-law price model treats `ev_adoption_count` (agents in this
+  model) as a proxy for cumulative EV production/adopters; it is not tied to
+  any external production-volume series.

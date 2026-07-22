@@ -50,6 +50,11 @@ python scripts/run_ev_experiments.py --scenarios subsidy --seeds 1 2 3 --targets
 ```
 
 The summary table then includes `target_rmse`, computed on overlapping steps.
+`outputs/portugal_ev_stock_share_targets.csv` (Portuguese BEV fleet share,
+2010–2024; see `ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md` for sourcing
+and caveats) is a ready-made `--targets` file — note it is a **stock/fleet**
+share, not the sales/registration share usually quoted in press coverage, so
+compare it against `ev_adoption_share`, not a new-registrations metric.
 
 One-at-a-time sensitivity sweeps vary one parameter at a time while holding the
 other overrides fixed:
@@ -68,6 +73,38 @@ stable.
 
 Still open:
 
-1. Calibration against real EV adoption data.
+1. Calibration against real EV adoption data (a Portugal target series is now
+   available; see above — no calibration run has been performed against it
+   yet).
 2. Charger reliability, charger types, and realistic geography.
 3. Used-vehicle market representation.
+4. Re-running the published sensitivity sweeps (subsidy, fuel price, charger
+   expansion) with multiple seeds and confidence bands — the current draft
+   figures are single-seed runs and some of the reported non-monotonicities
+   may be seed noise rather than genuine threshold effects.
+
+## Model-review fixes (2026-07-22)
+
+Following a review of the model against its own paper description
+(`Eva_JorgeNike_versao11.pdf`) and a SOTA literature benchmark
+(`ev_adoption_models/SOTA_BENCHMARK_REPORT.md`), the following were
+implemented (see `EV_MODEL_DESCRIPTION.md` for full formulas):
+
+- **Fixed**: range-anxiety penalty now discounts by effective charging access
+  (`range_anxiety * (1 - effective_access)`), matching the paper's own
+  formula — previously it was a constant penalty regardless of access.
+- **Fixed**: the paper's "agents cannot spend more than 10% of income on an
+  EV" claim is now a real hard gate (`income_budget_share`), replacing an
+  additive affordability term that contributed almost no heterogeneity.
+- **Simplified**: `price_sensitivity`/`peer_sensitivity` are now sampled
+  directly in `[0.5, 1.5]` instead of `0.5 + U(0,1)` — identical
+  distribution, simpler equations.
+- **Fixed**: initial `vehicle_age` is staggered below each agent's own
+  `replacement_interval` by default, removing a synchronized-evaluation
+  artifact at step 1 (opt out with `stagger_initial_vehicle_age=False`).
+- **Added** (all opt-in, default-preserving): Wright's-law price-learning
+  model as an alternative to the linear proxy; discounted TCO
+  (`discount_rate`); lognormal income option; income-correlated home-charging
+  access; per-step subsidy/fuel-price/electricity-price schedules.
+
+88 tests pass (`pytest`), up from 69 before this round.

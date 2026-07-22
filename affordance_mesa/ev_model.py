@@ -52,11 +52,15 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.ev_purchases_this_step = 0
         self.ev_supply_blocked_this_step = 0
         self.effective_ev_price = 0.0
+        self.current_fuel_price = 0.0
+        self.current_electricity_price = 0.0
+        self.current_subsidy = 0.0
 
         super().__init__(params=params or EVParams(), seed=seed)
 
         self.ev_agents = self.agent_list
         self._assign_initial_adopters()
+        self._update_price_schedules()
         self.effective_ev_price = self._effective_ev_price()
         self.charging_access = np.zeros((self.params.width, self.params.height), dtype=float)
         self._create_initial_chargers()
@@ -69,32 +73,27 @@ class EVAdoptionModel(AffordanceLandscapeModel):
     def _create_agents(self) -> None:
         for _ in range(self.params.number_of_agents):
             lower_bound, upper_bound = self._sample_bounds()
+            income = self._sample_income()
+            replacement_interval = self.random.randint(
+                self.params.replacement_interval_min,
+                self.params.replacement_interval_max,
+            )
+            vehicle_age = self._sample_initial_vehicle_age(replacement_interval)
+            home_charging_access = self._sample_home_charging_access(income)
             agent = EVConsumerAgent(
                 model=self,
                 pro_env=float(self.rng.normal(self.params.initial_pro, 0.15)),
                 non_env=float(self.rng.normal(self.params.initial_non, 0.15)),
                 lower_bound=lower_bound,
                 upper_bound=upper_bound,
-                income=self._sample_nonnegative_normal(
-                    self.params.income_mean,
-                    self.params.income_sd,
-                ),
+                income=income,
                 annual_mileage=self._sample_nonnegative_normal(
                     self.params.annual_mileage_mean,
                     self.params.annual_mileage_sd,
                 ),
-                vehicle_age=self.random.randint(
-                    self.params.vehicle_age_min,
-                    self.params.vehicle_age_max,
-                ),
-                replacement_interval=self.random.randint(
-                    self.params.replacement_interval_min,
-                    self.params.replacement_interval_max,
-                ),
-                home_charging_access=self._sample_uniform(
-                    self.params.home_charging_min,
-                    self.params.home_charging_max,
-                ),
+                vehicle_age=vehicle_age,
+                replacement_interval=replacement_interval,
+                home_charging_access=home_charging_access,
                 environmental_concern=self._sample_uniform(
                     self.params.environmental_concern_min,
                     self.params.environmental_concern_max,
@@ -119,6 +118,51 @@ class EVAdoptionModel(AffordanceLandscapeModel):
             agent.home_pos = (x, y)
             self._agents_by_home.setdefault((x, y), []).append(agent)
             self.agent_list.append(agent)
+
+    def _sample_initial_vehicle_age(self, replacement_interval: int) -> int:
+        """Age each agent's vehicle relative to its own replacement interval.
+
+        Avoids a synchronized replacement burst at step 1 that would occur if
+        vehicle age were sampled independently of the replacement interval.
+        Set ``stagger_initial_vehicle_age=False`` to fall back to independent
+        ``vehicle_age_min``/``vehicle_age_max`` sampling (e.g. to force
+        immediate evaluation in tests/scenarios).
+        """
+
+        if not self.params.stagger_initial_vehicle_age:
+            return self.random.randint(
+                self.params.vehicle_age_min,
+                self.params.vehicle_age_max,
+            )
+        return self.random.randint(0, max(replacement_interval - 1, 0))
+
+    def _sample_income(self) -> float:
+        mean = self.params.income_mean
+        sd = self.params.income_sd
+        distribution = self.params.income_distribution
+        if distribution == "lognormal":
+            variance = sd**2
+            sigma2 = math.log(1.0 + variance / mean**2)
+            sigma = math.sqrt(sigma2)
+            mu = math.log(mean) - sigma2 / 2.0
+            return float(self.rng.lognormal(mu, sigma))
+        if distribution == "normal":
+            return self._sample_nonnegative_normal(mean, sd)
+        raise ValueError(f"Unknown income_distribution {distribution!r}")
+
+    def _sample_home_charging_access(self, income: float) -> float:
+        """Optionally correlate home charging access with income (garage ownership)."""
+
+        p = self.params
+        raw = self._sample_uniform(p.home_charging_min, p.home_charging_max)
+        weight = p.home_charging_income_weight
+        if weight <= 0.0:
+            return raw
+
+        z = (income - p.income_mean) / max(p.income_sd, 1e-9)
+        income_percentile = 1.0 / (1.0 + math.exp(-max(min(z, 60.0), -60.0)))
+        blended = (1.0 - weight) * raw + weight * income_percentile
+        return min(max(blended, p.home_charging_min), p.home_charging_max)
 
     def home_neighbours(self, agent: EVConsumerAgent) -> list[EVConsumerAgent]:
         """Residential neighbourhood used for EV peer effects.
@@ -178,14 +222,55 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         return dx + dy
 
     def _effective_ev_price(self) -> float:
-        """Simple linear-in-adoption-share learning proxy.
+        """EV list-price decline as adoption accumulates.
 
-        ``ev_price_learning_rate=0`` keeps the list price exactly.
+        ``ev_price_learning_model="linear"`` (default) is a simple
+        linear-in-adoption-share proxy; ``ev_price_learning_rate=0`` keeps
+        the list price exactly. ``"wright"`` uses Wright's-law experience
+        curve, ``price(N) = price(N_0) * (N / N_0) ** -b`` with
+        ``b = -log2(1 - learning_rate)``, keyed on cumulative adopters.
+        Both are floored at ``ev_price_floor_share`` of the list price.
         """
 
         base = self.params.ev_purchase_price
-        price = base * (1.0 - self.params.ev_price_learning_rate * self.ev_adoption_share)
-        return max(price, base * self.params.ev_price_floor_share)
+        floor = base * self.params.ev_price_floor_share
+        model_name = self.params.ev_price_learning_model
+
+        if model_name == "linear":
+            price = base * (1.0 - self.params.ev_price_learning_rate * self.ev_adoption_share)
+        elif model_name == "wright":
+            reference = max(int(self.params.ev_wright_reference_adopters), 1)
+            cumulative = max(self.ev_adoption_count, reference)
+            learning_rate = self.params.ev_wright_learning_rate
+            exponent = -math.log2(1.0 - learning_rate) if learning_rate < 1.0 else float("inf")
+            price = base * (cumulative / reference) ** (-exponent)
+        else:
+            raise ValueError(f"Unknown ev_price_learning_model {model_name!r}")
+
+        return max(price, floor)
+
+    def _resolve_schedule(self, base_value: float, schedule) -> float:
+        """Return the per-step override from ``schedule`` if provided, else ``base_value``.
+
+        Indexed by ``self.steps``; once a schedule is exhausted its last
+        value holds for all later steps.
+        """
+
+        if not schedule:
+            return base_value
+        index = min(max(self.steps, 0), len(schedule) - 1)
+        return float(schedule[index])
+
+    def _update_price_schedules(self) -> None:
+        self.current_fuel_price = self._resolve_schedule(
+            self.params.fuel_price, self.params.fuel_price_schedule
+        )
+        self.current_electricity_price = self._resolve_schedule(
+            self.params.electricity_price, self.params.electricity_price_schedule
+        )
+        self.current_subsidy = self._resolve_schedule(
+            self.params.subsidy, self.params.subsidy_schedule
+        )
 
     def request_ev_purchase(self) -> bool:
         """Request one EV from the per-step market supply.
@@ -263,6 +348,9 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "mean_range_anxiety": "mean_range_anxiety",
                 "mean_environmental_concern": "mean_environmental_concern",
                 "effective_ev_price": "effective_ev_price",
+                "current_fuel_price": "current_fuel_price",
+                "current_electricity_price": "current_electricity_price",
+                "current_subsidy": "current_subsidy",
                 "ev_supply_blocked": "ev_supply_blocked_this_step",
                 "charger_count": lambda model: len(model.chargers),
             },
@@ -282,6 +370,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
                 "last_range_anxiety_penalty": "last_range_anxiety_penalty",
                 "last_ev_tco": "last_ev_tco",
                 "last_ice_tco": "last_ice_tco",
+                "last_affordable": "last_affordable",
                 "vehicle_age": "vehicle_age",
                 "income": "income",
                 "home_charging_access": "home_charging_access",
@@ -545,6 +634,7 @@ class EVAdoptionModel(AffordanceLandscapeModel):
         self.ev_purchases_this_step = 0
         self.ev_supply_blocked_this_step = 0
         self.effective_ev_price = self._effective_ev_price()
+        self._update_price_schedules()
         self._expand_charging_infrastructure()
         self._update_effective_charging_access()
 

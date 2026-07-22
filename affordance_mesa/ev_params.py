@@ -32,9 +32,24 @@ class EVParams(AffordanceModelParams):
     subsidy: float = 8000.0
     fuel_price: float = 1.8
     electricity_price: float = 0.25
+    # Optional per-step override sequences for policy/price paths (e.g. a
+    # historical or scenario time series). None keeps the flat scalar above;
+    # once a sequence is exhausted its last value holds.
+    subsidy_schedule: tuple | None = None
+    fuel_price_schedule: tuple | None = None
+    electricity_price_schedule: tuple | None = None
     ev_supply_per_step: float = float("inf")
     ev_price_learning_rate: float = 0.0
     ev_price_floor_share: float = 0.5
+    # "linear" (default, backward-compatible) or "wright" (Wright's-law
+    # experience curve keyed on cumulative adopters).
+    ev_price_learning_model: str = "linear"
+    ev_wright_learning_rate: float = 0.18
+    ev_wright_reference_adopters: int = 1
+    # Average annual TCO cannot exceed this share of income (paper's "10% of
+    # income" affordability rule), enforced as a hard adoption gate.
+    income_budget_share: float = 0.10
+    discount_rate: float = 0.0
 
     ev_purchase_price: float = 35000.0
     ice_purchase_price: float = 25000.0
@@ -60,22 +75,37 @@ class EVParams(AffordanceModelParams):
 
     income_mean: float = 30000.0
     income_sd: float = 8000.0
+    # "normal" (default, backward-compatible truncated normal) or
+    # "lognormal" (right-skewed, matching the empirical income distribution;
+    # matched to the same mean/sd).
+    income_distribution: str = "normal"
     annual_mileage_mean: float = 12000.0
     annual_mileage_sd: float = 2000.0
     vehicle_age_min: int = 1
     vehicle_age_max: int = 12
+    # When True (default), initial vehicle_age is drawn in
+    # [0, replacement_interval - 1] instead of from vehicle_age_min/max,
+    # avoiding a synchronized replacement burst at step 1. Set False to use
+    # vehicle_age_min/max directly (e.g. to force immediate evaluation in
+    # tests/scenarios).
+    stagger_initial_vehicle_age: bool = True
     replacement_interval_min: int = 6
     replacement_interval_max: int = 14
     home_charging_min: float = 0.0
     home_charging_max: float = 1.0
+    # Blends home_charging_access toward an income-based percentile (garage
+    # ownership correlates with income); 0.0 keeps it fully independent.
+    home_charging_income_weight: float = 0.0
     environmental_concern_min: float = 0.0
     environmental_concern_max: float = 1.0
-    price_sensitivity_min: float = 0.0
-    price_sensitivity_max: float = 1.0
+    # Rescaled to [0.5, 1.5] so the score can use the trait directly instead
+    # of the old "(0.5 + trait)" expression; identical distribution.
+    price_sensitivity_min: float = 0.5
+    price_sensitivity_max: float = 1.5
     range_anxiety_min: float = 0.0
     range_anxiety_max: float = 1.0
-    peer_sensitivity_min: float = 0.0
-    peer_sensitivity_max: float = 1.0
+    peer_sensitivity_min: float = 0.5
+    peer_sensitivity_max: float = 1.5
     social_diffusion: bool = False
     peer_range_anxiety_relief: float = 0.02
     peer_concern_gain: float = 0.01

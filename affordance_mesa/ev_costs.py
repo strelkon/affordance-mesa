@@ -7,21 +7,32 @@ They are simple mathematical utilities.
 import math
 
 
-def ev_tco(purchase_price, electricity_price, annual_mileage, kwh_per_km, maintenance_cost, years):
+def _annuity_factor(years, discount_rate):
+    """Present-value factor for a `years`-long stream of unit annual costs.
+
+    Degenerates to ``years`` when ``discount_rate == 0``, so undiscounted
+    callers get exactly the old flat-multiplication behaviour.
+    """
+    if discount_rate == 0:
+        return float(years)
+    return sum(1.0 / (1.0 + discount_rate) ** k for k in range(1, years + 1))
+
+
+def ev_tco(purchase_price, electricity_price, annual_mileage, kwh_per_km, maintenance_cost, years, discount_rate=0.0):
     """
     Total Cost of Ownership for an EV over N years.
     """
-    energy_cost = annual_mileage * kwh_per_km * electricity_price * years
-    total = purchase_price + energy_cost + maintenance_cost * years
+    annual_cost = annual_mileage * kwh_per_km * electricity_price + maintenance_cost
+    total = purchase_price + annual_cost * _annuity_factor(years, discount_rate)
     return total
 
 
-def ice_tco(purchase_price, fuel_price, annual_mileage, liters_per_km, maintenance_cost, years):
+def ice_tco(purchase_price, fuel_price, annual_mileage, liters_per_km, maintenance_cost, years, discount_rate=0.0):
     """
     Total Cost of Ownership for an ICE vehicle over N years.
     """
-    fuel_cost = annual_mileage * liters_per_km * fuel_price * years
-    total = purchase_price + fuel_cost + maintenance_cost * years
+    annual_cost = annual_mileage * liters_per_km * fuel_price + maintenance_cost
+    total = purchase_price + annual_cost * _annuity_factor(years, discount_rate)
     return total
 
 
