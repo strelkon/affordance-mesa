@@ -1,0 +1,887 @@
+% v13 — reconstructed from Eva_JorgeNike_versao12.pdf and updated to match
+% the current model implementation (branch evam-model-review-fixes @ b390871):
+% empirical Eurostat income anchor, hard income-budget gate, Wright's-law
+% price learning, trait rescaling, Portugal 2010-2020 calibration with
+% 2021-2024 hold-out, and fully regenerated multi-seed figures
+% (outputs/v13_figures/, produced by scripts/make_v13_figures.py).
+% Sections 1-2 and all still-valid prose are kept verbatim from v12.
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage[margin=1.1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+
+\title{An agent-based model for electric vehicles adoption with
+pro-environmental behaviour dynamics}
+\author{The Author}
+\date{July 23, 2026 (v13)}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+
+In this paper, we intent to design an exploratory model to study human
+behavior change towards sustainability issue in socio-economics systems. The
+aim of our work is to develop an agent-based model (ABM) for electric
+vehicles (EVs) adoption using dynamic computer simulation modelling.
+
+The ABMs provide useful tools to take advantage of a more realist description
+about human decision-making process (\cite{bonabeau2002}), in particular for
+new energy technologies adoption (\cite{rai2016}). We are focused on EV
+adoption because this vehicle technology has the greatest potential to
+achieve social benefits regarding climate change, increased energy
+independence and reduced greenhouse gas (GHG) emissions. The main modelling
+challenge is to represent sustainable consumption behaviour (SCB) that give
+rise to EV adoption (\cite{nielsen2024}) for meet goals from three
+dimensions: economy, ecology and social, known as the triple bottom line
+(\cite{elkington1997}).
+
+In many circumstances, consumer decisions are contextual and affected by
+psychological processes (or cognitive biases) such as habit, social norms,
+bounded rationality, loss aversion, cognitive depletion, temporal
+constraints, anchoring, and peer influence (\cite{orourke2015}).
+
+Many studies in the SCB literature (\cite{syed2024}) highlights a persistent
+gap between consumer attitudes, intention and behaviour, known as the
+``intention-behavior gap''. This barrier prevents widespread EV adoption so
+that it requires a multi-dimensional perspective including psychological,
+social, economic, environmental, and contextual factors to better capture
+the complexity of EV adoption on the ongoing sustainability transition.
+% TODO(v12 carry-over): two unresolved citations [?],[?] in this sentence.
+
+\section{Literature Review}
+\subsection{Framework for EV adoption models}
+% TODO: section body pending (unchanged from v12).
+
+\section{Model Overview}
+
+\subsection{Model Design}
+
+The Electric Vehicle Adoption Model (EVAM) is implemented as an extension of
+the Affordance Landscape Model (from now called it base model) by
+introducing the electric vehicle (EV) adoption dynamics with charging
+infrastructure evolution, and charging access adjusted to congestion. This
+model is embedded within a broader behavioural and spatial framework,
+preserving the modularity and generality of the original architecture based
+on affordances.
+
+While EVAM inherits the spatial grid, scheduling logic, and data-collection
+structure from the base model, all mechanisms related with EV are
+encapsulated within the extension. These include a population of
+heterogeneous EV consumer agents, the computation of total cost of ownership
+via an external module (\texttt{ev\_costs.py} file), and the evolution of
+public charging infrastructure. This modular design preserves conceptual
+independence while enabling focused analysis of EV adoption dynamics.
+
+\subsection{Model Structure}
+
+EVAM is a dynamic model structured in five blocks:
+
+\begin{enumerate}
+\item \textbf{Agents.}
+  \begin{itemize}
+  \item Agents are consumers (households) that will take a decision about EV
+    choice when own vehicle has reached or exceeded its replacement
+    interval.
+  \item Agents show their behavioural state towards environment,
+    pro-environmental or non-environmental, which is inherited from
+    pro-environmental learning dynamics of the base model.
+  \item Agents are endowed with socio-economic attributes (income, mileage,
+    vehicle age), behavioural attributes (environmental concern, price
+    sensitivity, peer sensitivity, range anxiety), vehicle replacement
+    behaviour, and access to home charging.
+  \item Agents are randomly located on the spatial grid, interact with their
+    local environment and neighbours, and can be connected to a (optional)
+    social network.
+  \end{itemize}
+
+\item \textbf{Environment (Space).}
+  The environment is represented by a two-dimensional discrete grid with
+  three spatial layers:
+  \begin{enumerate}
+  \item[(i)] An affordance landscape layer inherited from the base model,
+    representing pro-environmental cues;
+  \item[(ii)] A charging access layer representing the availability of
+    public charging infrastructure;
+  \item[(iii)] A effective charging access layer in which charging access is
+    discounted by congestion in order to meet local supply and demand. It
+    coincides with charging access layer when charger capacity is infinite.
+  \end{enumerate}
+
+  Charging access layer is a spatial field defined on the grid whose purpose
+  is to measure accessibility to public charging infrastructure for each
+  cell. Public charging infrastructure is dynamic and is characterized by
+  exogenous or demand-driven infrastructure expansion. Chargers are placed
+  uniformly at random on the grid (in the exogenous mode) or placed in
+  high-demand areas (in the demand-driven mode), subject to the constraint
+  that each cell may contain at most one charger.
+
+  The growing demand for EVs underscores the critical need for efficient and
+  accessible charging infrastructure (\cite{mohammed2024}).
+
+\item \textbf{Behavioral economic analysis related with EVs.}
+
+  Agents start by estimating the total cost of ownership (TCO) for both EV
+  and internal combustion engine (ICE) vehicles. TCO includes purchase price
+  (without financing costs), operational costs (fuel and electricity prices,
+  annual mileage, fuel and energy consumptions), and maintenance costs.
+
+  In our analysis instead of the EV purchase price $p_{EV}$ it is considered
+  the effective EV purchase price at time $t$. Effective EV purchase price
+  describes cost reduction of technologies with the increase in production
+  volume over time, represented by a learning (or experience) curve. The
+  model implements Wright's law keyed on cumulative adopters $N_t$:
+  \begin{equation}
+    p^{e\!f\!f}_{EV,t} \;=\;
+    \max\!\Big( p_{EV}\,\big(N_t / N_0\big)^{-b},\;
+                p_{EV}\cdot \mathit{floor\_share} \Big),
+    \qquad b = -\log_2\!\big(1 - \mathit{LR}\big),
+  \end{equation}
+  where $\mathit{LR}$ is the fractional cost decline per doubling of
+  cumulative adopters (default $\mathit{LR}=0.18$, calibrated;
+  cf.\ commonly cited lithium-ion pack learning rates), $N_0$ is the
+  reference adopter count at which the list price applies, and
+  $\mathit{floor\_share}$ is the minimum EV price fraction. A simpler linear
+  proxy $p^{e\!f\!f}_{EV,t} = \max\big(p_{EV}(1-\eta\, s_{EV,t}),\,
+  p_{EV}\cdot\mathit{floor\_share}\big)$, with $s_{EV,t}$ the EV adoption
+  share and $\eta$ a learning coefficient, is retained as an option for
+  backward comparability.
+
+  Let $p_{ICE}$ and $p_{EV}$ purchase prices, $S$ a subsidy for EV, $p_f$
+  and $p_e$ fuel and electricity prices respectively, $c_{ICE,i}$ and
+  $c_{EV,i}$ fuel and electricity consumptions in $L/km$ and $kWh/km$
+  respectively, $m_i$ the mileage in km/year, $Y$ the ownership horizon in
+  years, and $\mathit{mc}_{ICE}$ and $\mathit{mc}_{EV}$ annual maintenance
+  costs. The $i$ agent's TCO for EV and ICE vehicles respectively, are
+  given by
+  \begin{align}
+    TCO_{EV,i,t}  &= \big(p^{e\!f\!f}_{EV,t} - S_t\big)^{+}
+      + a(Y, r)\,\big(c_{EV}\, m_i\, p_{e,t} + \mathit{mc}_{EV}\big),\\
+    TCO_{ICE,i,t} &= p_{ICE}
+      + a(Y, r)\,\big(c_{ICE}\, m_i\, p_{f,t} + \mathit{mc}_{ICE}\big),
+  \end{align}
+  where $a(Y,r)=\sum_{k=1}^{Y}(1+r)^{-k}$ is an annuity factor with
+  discount rate $r$; the default $r=0$ gives $a(Y,0)=Y$ (undiscounted).
+  The subsidy and the fuel and electricity prices may follow exogenous
+  per-step schedules (Section~\ref{sec:results} uses the historical
+  Portuguese subsidy ramp), so they carry a time index.
+
+  TCO is used to verify cost-competitiveness for each pair of vehicle
+  choices, taking ICE vehicle cost as ``reference price''. The TCO gap
+  \begin{equation}
+    \Delta(TCO_{i,t}) = TCO_{ICE,i} - TCO_{EV,i,t}
+  \end{equation}
+  allows then to analyse cost-competitiveness because EV are cost-competitive
+  if $\Delta(TCO_{i,t})>0$.
+
+\item \textbf{Updating mechanisms.}
+  In each step time $t$ the procedure involved agents is the following:
+  \begin{enumerate}
+  \item[(a)] Agents might change their generic behavioral state
+    (pro-environmental or non-environmental) through social learning
+    process. It means that agents perform an affordance behaviour loop
+    (move, act, and learn);
+  \item[(b)] Once fixed vehicle replacement interval $[6,14]$ in years, it
+    is incremented vehicle age by one time step until reaches the vehicle
+    replacement event;
+  \item[(c)] The model resolves the current subsidy, fuel price, and
+    electricity price from their (optional) exogenous schedules, and
+    updates the effective EV purchase price by the learning curve;
+  \item[(d)] The peer adoption share is determined representing a fraction
+    of visible peers who currently own an electric vehicle;
+  \item[(e)] If social diffusion option is enabled, agents revise both the
+    generic pro-environmental state and the specific (regarding EVs)
+    environmental concern. This mechanism allows perceptions relevant to EV
+    adoption to spread through the social network. The agent's specific
+    environmental concern increases proportionally to peer adoption since
+    that exposure to EV adopters increases pro-environmental attitudes;
+  \item[(f)] Agents reduce perceived range anxiety over time due to peer EV
+    adoption.
+  \end{enumerate}
+
+  Public charging infrastructure is developed over time through exogenous
+  expansion or demand-driven expansion, charging access computation, and
+  adjusted access to congestion. In each step time $t$, it is proceeded as
+  follows:
+  \begin{enumerate}
+  \item[(a)] Expand charging infrastructure (exogenous or demand-driven). In
+    the mode exogenous a number of new chargers is added by means the
+    charger expansion rate. In the mode demand-driven the expected number of
+    new chargers is determined by $\lambda_t = r\cdot g\cdot s_{EV,t}$,
+    where $r$ is the rollout rate, $g$ a grid-size scaling factor, and
+    $s_{EV,t}$ is the EV adoption share at time $t$. It means that spatially
+    weighted placement based on adopter density and lack of access.
+  \item[(b)] Update charging access and effective charging access (in the
+    case of congestion). For each cell $(x,y)$, it is computed the baseline
+    charging access by
+    \begin{equation}
+      A_t(x,y) = \Big(1+\frac{d_t(x,y)}{\delta}\Big)^{-1},
+    \end{equation}
+    where $d_t(x,y)$ is the toroidal Manhattan distance to the nearest
+    charger, and $\delta$ is a decay parameter. Effective charging access
+    is updated by $A^{e\!f\!f}_t(x,y) = A_t(x,y)\, F_t(x,y)$, with
+    \begin{equation}
+      F_t(x,y) = \min\Big(1, \frac{\mathrm{Cap}_t(x,y)}{D_{R,t}(x,y)}\Big),
+    \end{equation}
+    where $D_{R,t}(x,y)$ is the local EV demand (within a neighborhood with
+    radius $R$), and $\mathrm{Cap}_t(x,y)$ is the local capacity related
+    with local charger supply.
+  \end{enumerate}
+
+  Finally, the model records aggregate indicators such as adoption share,
+  charging accessibility, and TCO gaps.
+
+\item \textbf{Agent's decision rule.} The decision rule (probabilistic or
+  deterministic) is defined by a EV adoption score obtained from its utility
+  function integrating economic variables, charging accessibility,
+  environmental preferences, peer influence, and range anxiety, combined
+  with a hard affordability constraint (income-budget gate,
+  Section~\ref{sec:decision}).
+
+  EV adoption score is composed by five components:
+  \begin{itemize}
+  \item Economic - Agents compute total cost of ownership (TCO) for EV and
+    ICE vehicles using effective purchase price (including subsidies),
+    energy cost, maintenance, annual mileage, and evaluation horizon. The
+    economic component combines TCO advantage and price sensitivity.
+  \item Contextual - Charging infrastructural access is a weighted linear
+    combination of home charging availability and public charging access at
+    the agent's fixed residential location.
+  \item Environmental - Environmental awareness combines the specific
+    (regarding EVs) environmental concern with the generic (regarding
+    affordances) agent's pro-environmental state.
+  \item Social (Peer exposure) - Peer influence is proportional to the
+    fraction of visible peers (network or residential) who have adopted
+    EVs, modulated by peer sensitivity. Social diffusion may also reduce
+    range anxiety and increase environmental concern.
+  \item Range Anxiety - Perceived range anxiety is a penalty to EV
+    adoption, representing then a psychological barrier that is alleviated
+    by good effective charging access and through peer exposure.
+  \end{itemize}
+
+  In addition to the score, adoption requires \emph{affordability}: the
+  average annual cost of EV ownership may not exceed a fixed share of the
+  agent's income (Section~\ref{sec:decision}).
+
+  EV adoption only is evaluated when the agent's vehicle reaches its
+  replacement interval, ensuring that adoption is tied to realistic
+  replacement cycles rather than continuous choice.
+\end{enumerate}
+
+\subsubsection{Socio-economic and behavioural heterogeneity}
+
+\begin{table}[ht]
+\centering
+\caption{Agents attribute distributions. Income is anchored to empirical
+data (see text); remaining behavioural traits are sampled from bounded
+intervals.}
+\label{tab:attributes}
+\begin{tabular}{lll}
+\toprule
+\textbf{Attribute} & \textbf{Distribution} & \textbf{Description} \\
+\midrule
+Income ($income_i$) & LogNormal($\mu=11600$, $\sigma=7600$) &
+  Annual income (EUR), empirically anchored. \\
+Annual mileage ($m_i$) & $N(\mu=12000,\ \sigma=2000)$ &
+  Yearly distance travelled (km). \\
+Replacement interval ($r_i$) & Uniform$(6, 14)$ &
+  Years between vehicle replacements. \\
+Vehicle age ($a_i$) & Uniform$(0, r_i - 1)$ &
+  Initial age, staggered below own $r_i$. \\
+Home charging access ($h_i$) & Uniform$(0, 1)$ &
+  Probability or ease of charging at home. \\
+Environmental concern ($env_i$) & Uniform$(0, 1)$ &
+  Specific environmental concern. \\
+Price sensitivity ($s^{price}_i$) & Uniform$(0.5, 1.5)$ &
+  Weight placed on economic considerations. \\
+Peer sensitivity ($s^{peer}_i$) & Uniform$(0.5, 1.5)$ &
+  Susceptibility to peer influence. \\
+Range anxiety ($r^{anx}_i$) & Uniform$(0, 1)$ &
+  Fear of running out of battery. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Agents are heterogeneous including socio-economic attributes such as income,
+annual mileage, vehicle age, replacement interval, and five behavioural
+attributes: home charging access, environmental concern, price sensitivity,
+range anxiety, and peer sensitivity. Agents also have behavioural state
+(pro-environmental or non-environmental) inherited from the base model,
+enabling interactions between environmental cues and EV adoption. The
+agents are initialized through distributions that determine agents behaviour
+(see Table~\ref{tab:attributes}).
+
+\paragraph{Empirical income anchor.} The income distribution is not a free
+parameter: it reproduces Eurostat EU-SILC mean equivalised net disposable
+income for Portugal (dataset \texttt{ilc\_di03}, EUR), whose 2010--2024
+average is EUR~11{,}565. The lognormal shape parameter
+$\sigma_{\ln}\approx 0.60$ is supported by two independent derivations: the
+observed mean/median ratio ($\approx 1.20$) and the Gini coefficient of
+equivalised disposable income (\texttt{ilc\_di12}, $\approx 33$ over the
+period). The parameterization (mean EUR~11{,}600, standard deviation
+EUR~7{,}600) reproduces both the empirical mean and median
+($\approx$EUR~9{,}700 vs.\ observed EUR~9{,}656). Equivalised income
+is expressed per adult-equivalent; the household equivalence-scale factor is
+absorbed by the income-budget share (Section~\ref{sec:decision}), which is
+the parameter fitted in calibration instead of income.
+
+Initial vehicle age is staggered below each agent's own replacement interval
+so that the population does not evaluate adoption in a synchronized burst at
+the first step. Price and peer sensitivities are drawn directly on
+$[0.5, 1.5]$ and multiply their score components (equivalent to the earlier
+$0.5+U(0,1)$ formulation, with a simpler expression).
+
+In addition to public charging accessibility, agents have availability of
+charging at own residence, being representing by parameter $h_i$. Higher
+values indicating greater convenience (e.g., private garage with installed
+charger) while lower values indicating limited or no home charging
+capability (e.g., on-street parking without infrastructure). Agents has
+preferences toward environmental issues (e.g., perceived reducing
+emissions), represented by parameter $env_i$. Agents are assigned a range
+anxiety parameter $r^{anx}_i$, representing the perceived risk of running
+out of battery before reaching a charging site. The parameter $s^{peer}_i$
+describes how strongly the agent responds to EV adoption behaviour of its
+neighbours.
+
+\subsubsection{Environment and spatial structure}
+
+The spatial layers provide the environmental and infrastructural context for
+agents behaviour. The affordance landscape shapes environmental attitudes,
+while the charging access layer shapes EV adoption feasibility. Their
+combination enables spatially heterogeneous diffusion patterns and realistic
+interactions between infrastructure and behaviour.
+
+\paragraph{Affordance landscape layer.} A central feature of the base model
+is the presence of a spatial layer of environmental affordances representing
+opportunities or cues that facilitate pro-environmental behaviour. For each
+cell in the spatial grid, it is assigned a binary value, which is equal to 1
+in the presence of a pro-environmental affordance or equal to 0 otherwise.
+These affordances encode the idea that behaviour is shaped not only by
+internal perceptions but also by contextual cues that either enable or
+inhibit action. Although the EVAM does not directly use affordances as
+behavioural triggers, the affordance landscape remains part of the
+environment and contributes to the agent's pro-environmental state, which in
+turn influences EV adoption score.
+
+\paragraph{Charging infrastructural access layer.} A second spatial layer
+represents public charging accessibility. Each cell stores a value in the
+interval $[0,1]$ indicating the relative ease of accessing public charging
+infrastructure at that location. This layer evolves dynamically over time
+through an exogenous expansion process governed by the parameter
+\texttt{charger\_expansion\_rate}. The charging access field captures
+spatial inequalities in infrastructure availability and provides a
+continuous measure of charging convenience that agents incorporate into
+their adoption decisions.
+
+\paragraph{Spatial neighbourhood structure.} Peer (spatial or social)
+effects reuse the existing network implementation from the base model.
+Agents interact with their local environment through a Moore neighbourhood,
+which includes eight surrounding cells. When diffusion social option is
+enabled, peers are agent's social network neighbours. Otherwise peers are
+residential neighbours. Let $N_i$ denotes the set of neighbours of agent
+$i$, and $A_j$ be an indicator equal to 1 if neighbour $j$ has already
+adopted an EV. Then peer adoption share is given by
+\begin{equation}
+P_{i,t} =
+\begin{cases}
+0, & |N_i| = 0,\\[2pt]
+\dfrac{1}{|N_i|}\sum_{j\in N_i} A_j, & |N_i| > 0.
+\end{cases}
+\end{equation}
+
+Peer adoption visibility has two effects:
+\begin{enumerate}
+\item \textbf{Range anxiety reduction.} Observing EV use among peers reduces
+  perceived range anxiety. The reduction is proportional to peer adoption
+  share. This reflects empirical evidences that social exposure alleviates
+  concerns about driving range.
+\item \textbf{Environmental concern increase.} Peer adoption increases the
+  salience of environmental motivations specific to EVs. The increase is
+  proportional to peer adoption share. This corresponds to social
+  reinforcement of pro-environmental norms.
+\end{enumerate}
+Therefore it represents a deeper form of social learning acting on
+psychological traits within the agent population.
+
+\paragraph{Agent placement and mobility.} Agents are initially placed at
+random locations on the grid. Since then agents have a fixed residential
+location and move to start pro-environmental learning dynamics driven by
+affordances. It is highlighted that EV adoption is strongly tied to
+residential location, which determines access to home and public charging
+infrastructure and local peer exposure.
+
+\subsubsection{Agent's decision-making process}
+\label{sec:decision}
+
+Agent's decision-making process is based on the decision rule (probabilistic
+or deterministic) which depends of a EV adoption score, combined with a hard
+affordability constraint.
+
+Agent's EV adoption score is a multi-dimensional metric that drives EV
+adoption dynamics. For each agent $i$ at time $t$, it is defined by
+\begin{equation}
+Score_{i,t} = w_{econ} Econ_{i,t} + w_{charge} C_{i,t} + w_{env} Env_{i,t}
+            + w_{peer} Peer_{i,t} - w_{range} R_{i,t}
+\end{equation}
+where $w_{econ}$, $w_{charge}$, $w_{env}$, $w_{peer}$, and $w_{range}$ are
+parameters.
+
+The deterministic decision rule is represented by
+\begin{equation}
+d_{i,t} =
+\begin{cases}
+1, & \text{if } Score_{i,t} \geq \theta,\\
+0, & \text{otherwise}
+\end{cases}
+\end{equation}
+in which $\theta$ is a threshold parameter. In turn, the probabilistic
+decision rule is given by
+\begin{equation}
+p_{i,t} = \frac{1}{1+e^{-(Score_{i,t}-\theta)/T}},
+\end{equation}
+where the parameter $T$ controls the steepness of the logistic curve. Higher
+$T$ values correspond to greater behavioural uncertainty.
+
+\paragraph{Income-budget gate (affordability).} Independently of the
+score-based decision, an agent may only adopt if the average annual cost of
+EV ownership does not exceed a share $\beta$ of its income:
+\begin{equation}
+\frac{TCO_{EV,i,t}}{Y} \;\leq\; \beta \cdot income_i .
+\label{eq:budgetgate}
+\end{equation}
+This implements the assumption that households cannot devote more than a
+fixed fraction of annual income to vehicle ownership as an actual
+constraint. With income pinned to the empirical Eurostat distribution, the
+calibration (Section~\ref{sec:results}) fitted $\beta = 0.108$ ---
+essentially recovering the familiar ``10\% of income'' budget heuristic
+from the adoption data, and absorbing the household equivalence-scale
+factor of the income measure.
+
+We now define the referred components (without weights) of the agent's EV
+adoption score.
+
+\paragraph{Economic component.} The economic component at time $t$ is
+calculated by
+\begin{equation}
+Econ_{i,t} = s^{price}_i \, \frac{\Delta(TCO_{i,t})}{TCO_{ICE,i}},
+\end{equation}
+with $s^{price}_i \sim U(0.5, 1.5)$. Affordability is not part of the
+score; it enters as the hard gate of Eq.~\eqref{eq:budgetgate}.
+
+\paragraph{Charging infrastructural access component.} For each agent $i$
+located at home position $(x,y)$ and time $t$,
+\begin{equation}
+C_{i,t}(x,y) = 0.7\, h_i + 0.3\, A^{e\!f\!f}_{i,t}(x,y)
+\end{equation}
+where $h_i$ denotes home charging access and $A^{e\!f\!f}$ the effective
+charging access.
+
+\paragraph{Environmental component.} For each agent $i$ at time $t$,
+\begin{equation}
+Env_{i,t} = (1-w)\, env_{i,t} + w\, proenv_{i,t}
+\end{equation}
+where $w$ is a weight parameter, $proenv_{i,t}$ is the generic
+pro-environmental behavioural state, and $env_{i,t}$ is the specific
+environmental concern. The latter remains fixed unless social diffusion is
+enabled, in which case peer exposure may update.
+
+\paragraph{Social (peer exposure) component.} For each agent $i$ at time
+$t$,
+\begin{equation}
+Peer_{i,t} = P_{i,t}\; s^{peer}_i ,
+\end{equation}
+where $s^{peer}_i \sim U(0.5, 1.5)$ is peer sensitivity and $P_{i,t}$ is
+peer adoption share.
+
+\paragraph{Range anxiety component (penalty).} Range anxiety component is
+given by
+\begin{equation}
+R_{i,t} = s^{range}_{i,t}\big(1 - A^{e\!f\!f}_{i,t}(x,y)\big),
+\end{equation}
+where $s^{range}_{i,t}$ is range anxiety and $A^{e\!f\!f}$ denotes the
+effective charging access. Observe that range anxiety penalises the EV
+adoption if effective charging access is low.
+
+\section{Simulation results}
+\label{sec:results}
+
+Model parameters are defined through the \texttt{EVParams} class, which
+provides baseline values for economic variables (fuel price, EV purchase
+cost, ICE operating cost), infrastructure variables (charger expansion rate,
+initial charging coverage), and behavioral coefficients. Scenario-specific
+overrides are applied using the \texttt{EVParams.from\_scenario} method,
+allowing controlled variation of selected parameters while keeping all
+other model components fixed.
+
+\subsection{Calibration to Portugal (2010--2020) and hold-out validation
+(2021--2024)}
+\label{sec:calibration}
+
+The model is calibrated against the Portuguese battery-electric vehicle
+(BEV) \emph{fleet} share --- the fraction of the circulating light-vehicle
+fleet that is electric, constructed from UVE/IMT fleet counts over a
+light-vehicle fleet of $\approx$5.8 million (note this is roughly an order
+of magnitude smaller than the commonly reported \emph{new-registration}
+share). The scenario spans annual steps 2010--2024, applies the historical
+subsidy trajectory as a schedule (zero through 2014, then a ramp from
+EUR~500 to EUR~4{,}000 reflecting the 2015 reintroduction of purchase
+incentives and the documented grant range), and seeds the observed 2010
+stock.
+
+Calibration deliberately uses only 2010--2020 (log-space RMSE objective,
+weighting the early exponential phase that raw RMSE ignores);
+\textbf{2021--2024 is a hold-out never seen by the search}. With income
+pinned to the empirical Eurostat distribution, the search fits the
+income-budget share $\beta$, vehicle prices, the Wright learning rate, the
+charger rollout rate, and the score threshold. Figure~\ref{fig:calibration}
+shows the result over 12 seeds: fit-window log-RMSE 0.36 (raw RMSE 0.0006);
+hold-out log-RMSE 0.29 (raw RMSE 0.006). Hold-out error is comparable to
+in-sample error, i.e.\ there is no evidence of overfitting.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{outputs/v13_figures/fig_calibration.png}
+\caption{Portugal BEV fleet share, model (12-seed mean $\pm$1 sd) versus
+observed. The model is fitted on 2010--2020 only; 2021--2024 is out of
+sample.}
+\label{fig:calibration}
+\end{figure}
+
+Two structural findings emerge. First, the calibrated regime is
+\emph{budget-gate dominated}: the fitted score threshold is nearly always
+passed, and adoption timing is governed by the affordability constraint
+interacting with the subsidy ramp and the Wright price decline, together
+with charging access. Second, out of sample the model systematically
+\emph{undershoots the post-2020 surge} (2024: model $\approx$2.3\% vs.\
+observed 3.28\%): the drivers of that surge --- the explosion of available
+EV models, corporate fleet electrification, and the 2022 fuel-price spike
+--- are outside the model's scope. We report this as a scope statement
+rather than a fitting failure.
+
+\subsection{Policy counterfactuals on the calibrated scenario}
+
+Rather than abstract scenario presets, policy experiments are run as
+counterfactuals on the calibrated Portugal scenario (4{,}000 agents, 12
+seeds, mean $\pm$1 sd), asking how the 2024 fleet share would have differed
+under alternative policies (Figure~\ref{fig:scenarios}).
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.9\textwidth]{outputs/v13_figures/fig_scenarios.png}
+\caption{BEV fleet share reached in 2024 under policy counterfactuals
+(12 seeds, error bars $\pm$1 sd).}
+\label{fig:scenarios}
+\end{figure}
+
+The subsidy trajectory is the decisive lever. Removing the subsidy ramp
+collapses the 2024 fleet share from $2.3\% \pm 1.6$ to $0.3\% \pm 0.6$ ---
+without purchase incentives the affordability gate keeps essentially the
+entire income distribution out of the market and the Wright price decline
+never ignites. Doubling the ramp (peak EUR~8{,}000) nearly triples the 2024
+share to $6.4\% \pm 0.9$, and also stabilises the trajectory across seeds
+(the dispersion halves), because a deeper subsidy reaches further down the
+steep part of the income distribution and starts the price-learning
+feedback earlier and more reliably. By contrast, doubling the charger
+rollout leaves the outcome unchanged ($2.3\% \pm 1.6$, identical to
+baseline), and a high fuel price (EUR~2.6/l) adds only $\approx$0.1
+percentage points: in the calibrated, budget-gate-dominated regime,
+neither infrastructure nor operating-cost levers relax the constraint that
+actually binds.
+
+\subsection{Sensitivity analysis}
+
+All sensitivity sweeps are run at the calibrated scale with 8 seeds per
+point and report mean $\pm$1 sd of the 2024 fleet share; single-run curves
+(as in earlier drafts) proved unstable across seeds and are not
+interpreted.
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{outputs/v13_figures/fig_sens_fuel.png}
+\caption{2024 BEV fleet share as a function of fuel price.}
+\label{fig:fuel}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{outputs/v13_figures/fig_sens_charger.png}
+\caption{2024 BEV fleet share as a function of charger expansion rate.}
+\label{fig:charger}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.75\textwidth]{outputs/v13_figures/fig_sens_subsidy.png}
+\caption{2024 BEV fleet share as a function of the subsidy-ramp scale
+(x-axis: peak subsidy reached by 2024).}
+\label{fig:subsidy}
+\end{figure}
+
+\begin{figure}[ht]
+\centering
+\includegraphics[width=0.85\textwidth]{outputs/v13_figures/fig_surface.png}
+\caption{2024 BEV fleet share as a function of fuel price and charger
+expansion rate (4-seed means).}
+\label{fig:surface}
+\end{figure}
+
+The sweeps confirm the counterfactual picture. The subsidy response
+(Figure~\ref{fig:subsidy}) is strong and convex --- from $0.4\%$ with no
+subsidy to $6.3\%$ at a doubled ramp --- because each additional
+EUR~1{,}000 of subsidy simultaneously lowers the affordability cutoff into
+denser regions of the income distribution and accelerates the Wright
+price decline. The fuel-price response (Figure~\ref{fig:fuel}) is positive
+but modest ($1.4\%$ at EUR~1.4/l to $2.3\%$ at EUR~3.0/l): operating costs
+shift the TCO comparison but not the binding budget constraint, which
+depends primarily on the purchase price net of subsidy. The
+charger-expansion response (Figure~\ref{fig:charger}) is nearly flat
+($1.6\%$ at zero rollout to $2.0\%$ at rate 6), and the joint surface
+(Figure~\ref{fig:surface}) is correspondingly gentle (from $1.1\%$ at the
+low-low corner to $2.6\%$ at the high-high corner) with no interaction
+structure that survives seed averaging. We emphasise what is \emph{absent}
+relative to earlier drafts: with 8--12 seeds per point, none of the
+apparent threshold effects, tipping zones, or non-monotonicities visible
+in single-run curves survive; those features were seed noise.
+
+\subsection{Policy implications}
+
+The calibrated model carries three implications for Portuguese-style EV
+policy. First, purchase-price support dominates: in a market where the
+binding constraint is the household budget, subsidies act twice --- once
+directly on affordability and once indirectly by igniting the
+learning-curve price decline --- and their effect is convex over the
+historically relevant range. Second, charging infrastructure and fuel
+prices, prominent levers in the earlier exploratory analysis, are
+second-order in the calibrated regime: they shape the adoption score, but
+the score threshold is rarely the binding margin. This does not imply
+infrastructure is unimportant in reality --- rather, that over Portugal's
+2010--2024 fleet-share trajectory, affordability was the bottleneck the
+data identify. Third, the out-of-sample undershoot of the 2021--2024 surge
+(Section~\ref{sec:calibration}) marks the model's scope boundary: drivers
+such as the expanding EV model range, corporate fleet electrification, and
+the 2022 fuel-price shock are not represented, and extending the model to
+capture them is the natural next step.
+
+\appendix
+\section*{Appendix A: ODD Protocol for the EV Adoption Model (EVAM)}
+
+\subsection*{A.1 Overview}
+
+Our model description follows the ODD (Overview, Design concepts, Details)
+protocol for describing agent-based models
+(\cite{grimm2006,grimm2010,grimm2020}).
+
+\begin{enumerate}
+\item \textbf{Purpose and patterns.} The Electric Vehicle Adoption Model
+  (EVAM), implemented in a Python/Mesa framework, extends the original
+  NetLogo Affordance Landscape Model (\cite{kaaronen2020}) by adding
+  household EV adoption. EVAM is designed to explore the behavioural,
+  infrastructural, and economic mechanisms that shape the adoption of
+  electric vehicles. The adoption emerges from total cost of ownership
+  (TCO), charging infrastructure availability (home and public charging
+  access), environmental attitudes, social influence (peer effects), range
+  anxiety, and a hard affordability constraint, under policy levers such as
+  subsidies, fuel prices, charging roll-out, and optional market feedbacks
+  (demand-driven infrastructure, congestion, supply limits, price learning,
+  and social diffusion). The patterns the model is expected to reproduce
+  are: (i) the near-zero early phase and subsequent exponential growth of
+  the Portuguese BEV fleet share (2010--2020, used for calibration); and
+  (ii) plausible out-of-sample continuation (2021--2024, used for hold-out
+  validation). It is intended for scenario exploration, policy analysis,
+  and the study of spatial diffusion patterns.
+
+\item \textbf{Entities, state variables, and scales.} There are three types
+  of agents in the EVAM: households, represented by mobile circle-shaped
+  agents, affordances (static patches that occupy grid cells) and links
+  (which connect agents in a social network).
+
+  \emph{Space.} The environment is a toroidal Mesa Multigrid of size
+  $Width\times Height$ shared with the base model, with three relevant
+  layers: the affordance landscape (unchanged from the base model); a
+  charging access layer $A_t(x,y)=(1+d_t(x,y)/\delta)^{-1}$ where $d$ is
+  the Manhattan distance to the nearest charger site; and an effective
+  charging access layer $A^{e\!f\!f}_t = A_t F_t$ with congestion factor
+  $F_t=\min(1,\mathrm{Cap}_t/D_{R,t})$, identical to charging access when
+  charger capacity is infinite. Charger sites are point locations with at
+  most one charger per cell.
+
+  \emph{Agents.} EVAM includes an agent class (\texttt{EVConsumerAgent}), a
+  subclass of \texttt{ConsumerAgent} of the base model. Agents are
+  characterised by socio-economic attributes (income, annual mileage,
+  vehicle age, vehicle replacement interval); behavioural traits
+  (environmental concern, price sensitivity, peer sensitivity, range
+  anxiety); and contextual attributes (home and public charging access).
+  Dynamic affordance states (\texttt{pro\_env}, \texttt{non\_env}) are
+  inherited from the base model and are updated by affordance learning.
+  Agents have two positions with distinct meanings: \texttt{pos} --- the
+  moving position in the base model's behaviour loop (not residential
+  relocation); and \texttt{home\_pos} --- the fixed residential location
+  assigned at placement, used by all EV mechanics (charging access reads,
+  spatial peer effects, charger demand). The adoption state
+  (\texttt{ev\_adopted}) is one-shot and adopting resets vehicle age to
+  zero. Time advances in discrete yearly steps. Agents do not relocate.
+
+  EVAM records decision telemetry on every evaluation:
+  \texttt{last\_adoption\_score}, \texttt{last\_economic\_score},
+  \texttt{last\_charging\_score}, \texttt{last\_environmental\_score},
+  \texttt{last\_peer\_adoption\_share},
+  \texttt{last\_range\_anxiety\_penalty}, \texttt{last\_ice\_tco},
+  \texttt{last\_tco\_gap}, \texttt{last\_ev\_tco},
+  \texttt{last\_adoption\_probability}, \texttt{last\_affordable} (the
+  income-budget gate outcome), and \texttt{has\_evaluated\_adoption}.
+
+  \emph{Model-level state.} Beyond agent-level states, EVAM contains global
+  state variables related to EV, including charger locations, the effective
+  EV price (learning curve), the per-step resolved policy/price values
+  (\texttt{current\_subsidy}, \texttt{current\_fuel\_price},
+  \texttt{current\_electricity\_price}), per-step market counters, and
+  aggregated metrics.
+
+\item \textbf{Process overview and scheduling.} Each simulation step:
+  (a) reset market counters, set the effective price from the previous
+  step's cumulative adoption, and resolve the current subsidy and energy
+  prices from their optional schedules; (b) expand charging infrastructure
+  (exogenous or demand-driven); (c) update charging access and effective
+  charging access (congestion); (d) activate agents in random order to
+  perform the affordance behaviour loop (move/act/learn), age vehicle,
+  optionally diffuse perceptions, and evaluate EV adoption if the
+  replacement interval is reached (score rule + income-budget gate + market
+  supply gate); (e) update EV metrics and record the full model state. Row
+  0 of the DataCollector is collected at construction.
+\end{enumerate}
+
+\subsection*{A.2 Design concepts}
+
+\begin{description}
+\item[Basic principles.] EVAM integrates ecological psychology
+  (affordances), behavioural economics (TCO, price sensitivity, budget
+  constraint), and social diffusion. Adoption emerges from
+  multi-dimensional behavioural drivers modulated by infrastructure and
+  policy.
+\item[Emergence.] EVAM produces spatial clustering of EV adoption,
+  diffusion waves driven by infrastructure rollout, congestion effects
+  reducing perceived access, socio-spatial inequalities, and peer-driven
+  acceleration or stagnation of adoption.
+\item[Adaptation.] Agents adapt annually by updating their adoption score
+  based on current economic, infrastructural, environmental, and social
+  conditions.
+\item[Objectives.] Agents aim to minimise long-term vehicle ownership costs
+  while satisfying behavioural preferences, social norms, and their budget
+  constraint.
+\item[Learning.] Agents do not learn over time in the reinforcement sense.
+  However, environmental concern and range anxiety may shift
+  deterministically through social diffusion, hence peer influence acts as
+  a form of social learning.
+\item[Prediction.] Agents do not forecast future conditions so that
+  decisions rely on current-year information.
+\item[Sensing.] Agents observe the economic market (TCO, current fuel and
+  electricity price), policy incentives (current subsidy), public charging
+  access at their home location, availability of home charging, peer
+  adoption share, their own traits, and affordance states.
+\item[Interaction.] Agents interact through peer influence, either via
+  social networks or residential neighbourhoods (Moore-1 torus).
+\item[Stochasticity.] Initial trait sampling (including lognormal income),
+  initial adopter assignment, random activation order, random charger
+  placement in exogenous mode, and the logistic decision rule when enabled.
+\item[Collectives.] Neighbourhoods (spatial or network-based) act as
+  collectives influencing adoption through peer visibility.
+\item[Observation.] EVAM records EV adoption share, charger count,
+  effective EV price, current policy/price values, congestion, TCO gap,
+  component scores, affordability outcomes, and agent-level telemetry.
+\end{description}
+
+\subsection*{A.3 Details}
+
+\begin{enumerate}
+\setcounter{enumi}{4}
+\item \textbf{Initialization.} Agents are placed randomly on the grid and
+  endowed with socio-economic attributes and behavioural traits
+  (Table~\ref{tab:attributes}); initial vehicle age is staggered below each
+  agent's replacement interval. Initial adopters are assigned according to
+  parameter-defined share (the Portugal scenario seeds the observed 2010
+  stock). Initial chargers are placed, charging access and effective access
+  are computed, the effective EV price is set by the learning curve, and
+  the DataCollector records the initial state.
+
+\item \textbf{Input data.} The income distribution is anchored to Eurostat
+  EU-SILC statistics for Portugal (\texttt{ilc\_di03} mean/median
+  equivalised net disposable income; \texttt{ilc\_di12} Gini coefficient).
+  The calibration target is the Portuguese BEV fleet-share series
+  2010--2024 constructed from UVE/IMT fleet counts and an ACAP/APA fleet
+  denominator, and the Portugal scenario applies the historical subsidy
+  trajectory as an exogenous schedule. All remaining parameters are
+  user-defined through \texttt{EVParams} or scenario presets.
+
+\item \textbf{Submodels.} The agent's EV adoption score aggregates
+  economic, infrastructural, environmental, social, and behavioural
+  components as defined in Section~\ref{sec:decision}, using the Wright's
+  law effective price, the (optionally discounted) TCO of
+  Section~3.2, the income-budget gate of Eq.~\eqref{eq:budgetgate}, and
+  the market supply constraint
+  $\sum_i \mathbf{1}\{\mathrm{adopt}_i(t)\} \leq
+  \texttt{ev\_supply\_per\_step}$.
+\end{enumerate}
+
+\paragraph{Reproducibility.} All stochasticity flows through model-seeded
+RNGs. Disabling optional mechanisms yields deterministic, byte-identical
+results for fixed seeds. All simulation scripts, parameter files, and
+notebooks used in this analysis are stored in the project repository
+(including \texttt{scripts/calibrate\_portugal.py} for the calibration
+search and \texttt{scripts/make\_v13\_figures.py}, which regenerates every
+figure in Section~\ref{sec:results}), ensuring reproducibility of the
+results.
+
+\begin{thebibliography}{12}
+\bibitem{bonabeau2002} Bonabeau, E. (2002). Agent-based modeling: Methods
+and techniques for simulating human systems, \emph{Proc. Natl. Acad. Sci.
+U.S.A.} 99 (3) 7280--7287.
+\url{https://doi.org/10.1073/pnas.082080899}
+\bibitem{elkington1997} Elkington, J. (1997). \emph{Cannibals with Forks:
+The Triple Bottom Line of 21st Century Business}. Capstone, Oxford.
+\bibitem{grimm2006} Grimm, V., Berger, U., Bastiansen, F., et al. (2006). A
+standard protocol for describing individual-based and agent-based models.
+\emph{Ecological Modelling}, 198(1--2), 115--126.
+\url{https://doi.org/10.1016/j.ecolmodel.2006.04.023}
+\bibitem{grimm2010} Grimm, V., Berger, U., DeAngelis, D.~L., Polhill,
+J.~G., Giske, J., \& Railsback, S.~F. (2010). The ODD protocol: A review
+and first update. \emph{Ecological Modelling}, 221(23), 2760--2768.
+\url{https://doi.org/10.1016/j.ecolmodel.2010.08.019}
+\bibitem{grimm2020} Grimm, V., Railsback, S.~F., Vincenot, C.~E., et al.
+(2020). The ODD protocol for describing agent-based and other simulation
+models: A second update to improve clarity, replication, and structural
+realism. \emph{J. Artif. Soc. Soc. Simul.} 23(2).
+\url{http://jasss.soc.surrey.ac.uk/23/2/7.html}
+\bibitem{kaaronen2020} Kaaronen, R.~O., \& Strelkovskii, N. (2020).
+Cultural Evolution of Sustainable Behaviors: Pro-environmental Tipping
+Points in an Agent-Based Model. \emph{One Earth}, 2(1), 85--97.
+\url{https://doi.org/10.1016/j.oneear.2020.01.003}
+\bibitem{mohammed2024} Mohammed, A., Saif, O., Abo-Adma, M., et al. (2024).
+Strategies and sustainability in fast charging station deployment for
+electric vehicles. \emph{Scientific Reports} 14, 283.
+\url{https://doi.org/10.1038/s41598-023-50825-7}
+\bibitem{nielsen2024} Nielsen, K.~S., Cologna, V., Bauer, J.~M., et al.
+(2024). Realizing the full potential of behavioural science for climate
+change mitigation. \emph{Nat. Clim. Chang.} 14, 322--330.
+\bibitem{rai2016} Rai, V., \& Henry, A.~D. (2016). Agent-based modelling of
+consumer energy choices. \emph{Nat. Clim. Change} 6, 556--562.
+\bibitem{orourke2015} O'Rourke, D., \& Lollo, N. (2015). Transforming
+Consumption: From Decoupling, to Behavior Change, to System Changes for
+Sustainable Consumption. \emph{Annual Review of Environment and Resources},
+40, 233--259. \url{https://doi.org/10.1146/annurev-environ-102014-021224}
+\bibitem{syed2024} Syed, S., Acquaye, A., Khalfan, M.~M., Obuobisa-Darko,
+T., \& Yamoah, F. (2024). Decoding Sustainable Consumption Behavior: A
+Systematic Review of Theories and Models and Provision of a Guidance
+Framework. \emph{Resources, Conservation \& Recycling Advances}.
+\bibitem{eurostat} Eurostat (2026). EU-SILC: mean and median equivalised
+net disposable income (\texttt{ilc\_di03}); Gini coefficient of equivalised
+disposable income (\texttt{ilc\_di12}). Retrieved July 2026.
+\bibitem{uve} UVE --- Utilizadores de Ve\'iculos El\'etricos (2025).
+Parque de Ve\'iculos El\'etricos em Portugal.
+\url{https://www.uve.pt/page/parque-ve-2024/}
+\end{thebibliography}
+
+\end{document}
