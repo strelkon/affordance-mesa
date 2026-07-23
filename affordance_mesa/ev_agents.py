@@ -73,6 +73,7 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_ev_tco = 0.0
         self.last_ice_tco = 0.0
         self.has_evaluated_adoption = False
+        self.last_affordable = True
 
     def step(self) -> None:
         """Run original affordance behaviour, then the EV decision layer."""
@@ -90,42 +91,51 @@ class EVConsumerAgent(ConsumerAgent):
         p = self.model.params
         home_x, home_y = self.home_pos
 
+        subsidy = self.model.current_subsidy
         ev_cost = ev_tco(
-            purchase_price=max(self.model.effective_ev_price - p.subsidy, 0.0),
-            electricity_price=p.electricity_price,
+            purchase_price=max(self.model.effective_ev_price - subsidy, 0.0),
+            electricity_price=self.model.current_electricity_price,
             annual_mileage=self.annual_mileage,
             kwh_per_km=p.ev_kwh_per_km,
             maintenance_cost=p.ev_maintenance_cost,
             years=p.tco_years,
+            discount_rate=p.discount_rate,
         )
         ice_cost = ice_tco(
             purchase_price=p.ice_purchase_price,
-            fuel_price=p.fuel_price,
+            fuel_price=self.model.current_fuel_price,
             annual_mileage=self.annual_mileage,
             liters_per_km=p.ice_liters_per_km,
             maintenance_cost=p.ice_maintenance_cost,
             years=p.tco_years,
+            discount_rate=p.discount_rate,
         )
 
         tco_gap = ice_cost - ev_cost
-        affordability_score = min(self.income / max(ev_cost, 1.0), 1.0)
         tco_score = economic_score(ev_cost, ice_cost)
-        economic_component = tco_score * (0.5 + self.price_sensitivity)
-        economic_component += 0.1 * affordability_score
+        economic_component = tco_score * self.price_sensitivity
 
-        charging_score = 0.7 * self.home_charging_access
-        charging_score += 0.3 * float(self.model.effective_charging_access[home_x, home_y])
+        effective_access = float(self.model.effective_charging_access[home_x, home_y])
+        charging_score = 0.7 * self.home_charging_access + 0.3 * effective_access
         w = p.env_score_pro_env_weight
         environmental_score = (1.0 - w) * self.environmental_concern + w * self.pro_env
         peer_adoption_share = self._peer_adoption_share()
+        # Range anxiety is a psychological barrier that good charging access
+        # alleviates; agents with high effective access at home discount it.
+        range_anxiety_penalty = self.range_anxiety * (1.0 - effective_access)
 
         adoption_score = (
             p.economic_weight * economic_component
             + p.charging_weight * charging_score
             + p.environmental_weight * environmental_score
-            + p.peer_weight * peer_adoption_share * (0.5 + self.peer_sensitivity)
-            - p.range_anxiety_weight * self.range_anxiety
+            + p.peer_weight * peer_adoption_share * self.peer_sensitivity
+            - p.range_anxiety_weight * range_anxiety_penalty
         )
+
+        # Hard affordability gate: average annual cost of ownership cannot
+        # exceed income_budget_share of income, regardless of score.
+        annual_ev_cost = ev_cost / p.tco_years
+        affordable = annual_ev_cost <= p.income_budget_share * self.income
 
         self.last_ev_tco = ev_cost
         self.last_ice_tco = ice_cost
@@ -134,11 +144,13 @@ class EVConsumerAgent(ConsumerAgent):
         self.last_charging_score = charging_score
         self.last_environmental_score = environmental_score
         self.last_peer_adoption_share = peer_adoption_share
-        self.last_range_anxiety_penalty = p.range_anxiety_weight * self.range_anxiety
+        self.last_range_anxiety_penalty = p.range_anxiety_weight * range_anxiety_penalty
         self.last_adoption_score = adoption_score
+        self.last_affordable = affordable
         self.has_evaluated_adoption = True
 
-        if self._decide_adoption(adoption_score) and self.model.request_ev_purchase():
+        decided_to_adopt = self._decide_adoption(adoption_score)
+        if decided_to_adopt and affordable and self.model.request_ev_purchase():
             self.ev_adopted = True
             self.vehicle_age = 0
 

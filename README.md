@@ -113,21 +113,24 @@ Then run:
 from affordance_mesa.ev_model import EVAdoptionModel
 from affordance_mesa.ev_params import EVParams
 
-params = EVParams(
-    width=201,
-    height=201,
-    number_of_agents=100,
-    subsidy=8000,
-    initial_charging_coverage=0.0,
-    charger_expansion_rate=2.0,
-    adoption_threshold=0.34,
-)
+# Defaults are calibrated against Portugal's 2010-2024 BEV fleet share
+# (see VALIDATION.md); override any field as needed.
+params = EVParams(width=101, height=101, number_of_agents=1000)
 
 model = EVAdoptionModel(params, seed=42)
 model.run_model(50)
 
 results = model.datacollector.get_model_vars_dataframe()
 results.tail()
+```
+
+To reproduce the Portugal calibration run itself (fixed grid/agent scale and
+the historical subsidy ramp; step 0 = 2010, step 14 = 2024):
+
+```python
+params = EVParams.from_scenario("portugal_2010_2024")
+model = EVAdoptionModel(params, seed=42)
+model.run_model(14)
 ```
 
 Alternatively, install the repository in editable mode from a notebook:

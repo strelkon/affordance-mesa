@@ -560,7 +560,7 @@ def Page():
                     solara.SliderFloat("Subsidy", value=subsidy, min=0.0, max=20000.0, step=500.0)
                     solara.SliderFloat("Fuel price", value=fuel_price, min=0.5, max=4.0, step=0.1)
                     solara.SliderFloat("Electricity price", value=electricity_price, min=0.05, max=1.0, step=0.05)
-                    solara.SliderFloat("Adoption threshold", value=adoption_threshold, min=0.0, max=0.8, step=0.01)
+                    solara.SliderFloat("Adoption threshold", value=adoption_threshold, min=0.0, max=0.8, step=0.005)
 
                 with solara.Div(classes=["aff-control-block"]):
                     ControlSection("Mechanisms")
@@ -594,7 +594,7 @@ def Page():
 
                 with solara.Div(classes=["aff-control-block"]):
                     ControlSection("Consumers")
-                    solara.SliderFloat("Income mean", value=income_mean, min=10000.0, max=80000.0, step=1000.0)
+                    solara.SliderFloat("Income mean", value=income_mean, min=2000.0, max=80000.0, step=1000.0)
                     solara.SliderFloat("Annual mileage mean", value=annual_mileage_mean, min=2000.0, max=30000.0, step=1000.0)
                     solara.SliderFloat("Economic weight", value=economic_weight, min=0.0, max=1.0, step=0.01)
                     solara.SliderFloat("Charging weight", value=charging_weight, min=0.0, max=1.0, step=0.01)

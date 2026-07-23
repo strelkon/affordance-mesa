@@ -3,7 +3,7 @@ import numpy as np
 from pandas.testing import assert_frame_equal
 
 from affordance_mesa.ev_agents import EVConsumerAgent
-from affordance_mesa.ev_costs import adoption_probability
+from affordance_mesa.ev_costs import adoption_probability, ev_tco, ice_tco
 from affordance_mesa.ev_model import EVAdoptionModel
 from affordance_mesa.ev_params import EVParams
 from affordance_mesa.model import AffordanceLandscapeModel
@@ -772,8 +772,10 @@ def test_supply_cap_limits_adoptions_per_step():
         ev_supply_per_step=1,
         subsidy=30000.0,
         adoption_threshold=0.0,
+        income_budget_share=1.0,  # isolate the supply cap from the affordability gate
         vehicle_age_min=12,
         vehicle_age_max=12,
+        stagger_initial_vehicle_age=False,
         replacement_interval_min=6,
         replacement_interval_max=6,
     )
@@ -797,8 +799,10 @@ def test_supply_blocked_agents_adopt_later():
         ev_supply_per_step=1,
         subsidy=30000.0,
         adoption_threshold=0.0,
+        income_budget_share=1.0,  # isolate the supply cap from the affordability gate
         vehicle_age_min=12,
         vehicle_age_max=12,
+        stagger_initial_vehicle_age=False,
         replacement_interval_min=6,
         replacement_interval_max=6,
     )
@@ -818,6 +822,7 @@ def test_price_learning_lowers_effective_price_with_floor():
         height=10,
         number_of_agents=20,
         initial_ev_share=0.5,
+        ev_price_learning_model="linear",
         ev_price_learning_rate=0.4,
     )
     model = EVAdoptionModel(params, seed=3)
@@ -997,3 +1002,324 @@ def test_env_score_weight_one_uses_pro_env_only():
     agent.consider_ev_adoption()
 
     assert agent.last_environmental_score == pytest.approx(agent.pro_env)
+
+
+# --- Model-review fixes: range anxiety, budget gate, staggered age, ---
+# --- price learning models, discounting, income/home-charging realism, ---
+# --- and time-varying price schedules.                                ---
+
+
+def test_range_anxiety_penalty_discounted_by_effective_access():
+    params = EVParams(width=5, height=5, number_of_agents=3, range_anxiety_weight=0.5)
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    agent.range_anxiety = 0.8
+    home_x, home_y = agent.home_pos
+
+    model.effective_charging_access[home_x, home_y] = 1.0
+    agent.consider_ev_adoption()
+    assert agent.last_range_anxiety_penalty == pytest.approx(0.0)
+
+    agent.has_evaluated_adoption = False
+    model.effective_charging_access[home_x, home_y] = 0.0
+    agent.consider_ev_adoption()
+    assert agent.last_range_anxiety_penalty == pytest.approx(
+        params.range_anxiety_weight * agent.range_anxiety
+    )
+
+
+def test_income_budget_gate_blocks_unaffordable_agents_even_if_score_passes():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        adoption_threshold=-1e6,  # score-based decision always passes
+        income_budget_share=0.10,
+        ev_purchase_price=100000.0,
+        subsidy=0.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    agent.income = 100.0  # far too poor to afford even 10% of a cheap EV
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_affordable is False
+    assert agent.ev_adopted is False
+
+
+def test_income_budget_gate_allows_affordable_agents():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        adoption_threshold=-1e6,
+        income_budget_share=0.10,
+        ev_purchase_price=10000.0,
+        subsidy=10000.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+    agent.income = 1_000_000.0  # trivially affordable
+
+    agent.consider_ev_adoption()
+
+    assert agent.last_affordable is True
+    assert agent.ev_adopted is True
+
+
+def test_price_sensitivity_and_peer_sensitivity_default_bounds():
+    params = EVParams()
+    assert params.price_sensitivity_min == 0.5
+    assert params.price_sensitivity_max == 1.5
+    assert params.peer_sensitivity_min == 0.5
+    assert params.peer_sensitivity_max == 1.5
+
+
+def test_economic_component_uses_price_sensitivity_directly_not_shifted():
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+
+    agent.consider_ev_adoption()
+
+    from affordance_mesa.ev_costs import economic_score
+
+    expected = economic_score(agent.last_ev_tco, agent.last_ice_tco) * agent.price_sensitivity
+    assert agent.last_economic_score == pytest.approx(expected)
+
+
+def test_stagger_initial_vehicle_age_stays_below_replacement_interval():
+    params = EVParams(width=10, height=10, number_of_agents=50)
+    assert params.stagger_initial_vehicle_age is True
+    model = EVAdoptionModel(params, seed=42)
+
+    assert all(
+        agent.vehicle_age < agent.replacement_interval for agent in model.agent_list
+    )
+
+
+def test_disabling_stagger_uses_independent_vehicle_age_bounds():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=10,
+        stagger_initial_vehicle_age=False,
+        vehicle_age_min=20,
+        vehicle_age_max=20,
+        replacement_interval_min=6,
+        replacement_interval_max=6,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    assert all(agent.vehicle_age == 20 for agent in model.agent_list)
+
+
+def test_discount_rate_reduces_tco_relative_to_zero_rate():
+    kwargs = dict(
+        annual_mileage=12000,
+        maintenance_cost=300,
+        years=8,
+    )
+    undiscounted = ev_tco(purchase_price=35000, electricity_price=0.25, kwh_per_km=0.18, **kwargs)
+    discounted = ev_tco(
+        purchase_price=35000, electricity_price=0.25, kwh_per_km=0.18, discount_rate=0.05, **kwargs
+    )
+    assert discounted < undiscounted
+
+    ice_kwargs = dict(annual_mileage=12000, maintenance_cost=600, years=8)
+    ice_undiscounted = ice_tco(purchase_price=25000, fuel_price=1.8, liters_per_km=0.07, **ice_kwargs)
+    ice_discounted = ice_tco(
+        purchase_price=25000, fuel_price=1.8, liters_per_km=0.07, discount_rate=0.05, **ice_kwargs
+    )
+    assert ice_discounted < ice_undiscounted
+
+
+def test_discount_rate_zero_matches_flat_multiplication():
+    total = ev_tco(
+        purchase_price=35000,
+        electricity_price=0.25,
+        annual_mileage=12000,
+        kwh_per_km=0.18,
+        maintenance_cost=300,
+        years=8,
+        discount_rate=0.0,
+    )
+    expected = 35000 + (12000 * 0.18 * 0.25 + 300) * 8
+    assert total == pytest.approx(expected)
+
+
+def test_wright_law_price_declines_with_cumulative_adopters():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        ev_price_learning_model="wright",
+        ev_wright_learning_rate=0.18,
+        ev_wright_reference_adopters=1,
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    model.ev_adoption_count = 1
+    price_at_one = model._effective_ev_price()
+    model.ev_adoption_count = 2
+    price_at_two = model._effective_ev_price()
+
+    assert price_at_two < price_at_one
+    # One doubling should cut price by exactly the learning rate.
+    assert price_at_two == pytest.approx(price_at_one * (1 - params.ev_wright_learning_rate))
+
+
+def test_wright_law_price_floors_like_linear_model():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=20,
+        ev_price_learning_model="wright",
+        ev_wright_learning_rate=0.5,
+        ev_wright_reference_adopters=1,
+        ev_price_floor_share=0.5,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    model.ev_adoption_count = 10_000
+
+    assert model._effective_ev_price() == pytest.approx(
+        params.ev_purchase_price * params.ev_price_floor_share
+    )
+
+
+def test_unknown_price_learning_model_raises():
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    model = EVAdoptionModel(params, seed=42)
+    model.params.ev_price_learning_model = "bogus"
+
+    with pytest.raises(ValueError):
+        model._effective_ev_price()
+
+
+def test_lognormal_income_is_positive_and_right_skewed():
+    params = EVParams(
+        width=10,
+        height=10,
+        number_of_agents=200,
+        income_distribution="lognormal",
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    incomes = np.array([agent.income for agent in model.agent_list])
+    assert (incomes > 0).all()
+    assert np.mean(incomes) == pytest.approx(params.income_mean, rel=0.25)
+    # Right-skewed: mean should exceed the median.
+    assert np.mean(incomes) > np.median(incomes)
+
+
+def test_unknown_income_distribution_raises():
+    params = EVParams(width=5, height=5, number_of_agents=1, income_distribution="bogus")
+
+    with pytest.raises(ValueError):
+        EVAdoptionModel(params, seed=42)
+
+
+def test_home_charging_income_weight_zero_ignores_income_argument():
+    params = EVParams(width=5, height=5, number_of_agents=3)
+    assert params.home_charging_income_weight == 0.0
+    model = EVAdoptionModel(params, seed=99)
+
+    state = model.rng.bit_generator.state
+    low = model._sample_home_charging_access(0.0)
+    model.rng.bit_generator.state = state
+    high = model._sample_home_charging_access(1_000_000.0)
+
+    # Same underlying RNG draw regardless of income when the weight is zero.
+    assert low == pytest.approx(high)
+
+
+def test_home_charging_income_weight_one_matches_income_percentile():
+    params = EVParams(width=5, height=5, number_of_agents=3, home_charging_income_weight=1.0)
+    model = EVAdoptionModel(params, seed=42)
+
+    low_income_access = model._sample_home_charging_access(params.income_mean - 5 * params.income_sd)
+    high_income_access = model._sample_home_charging_access(params.income_mean + 5 * params.income_sd)
+
+    assert low_income_access < 0.01
+    assert high_income_access > 0.99
+
+
+def test_fuel_price_schedule_overrides_scalar_and_holds_last_value():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        fuel_price=1.8,
+        fuel_price_schedule=(1.0, 2.0, 3.0),
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    assert model.current_fuel_price == pytest.approx(1.0)
+    model.step()
+    assert model.current_fuel_price == pytest.approx(2.0)
+    model.step()
+    assert model.current_fuel_price == pytest.approx(3.0)
+    model.step()
+    assert model.current_fuel_price == pytest.approx(3.0)  # holds last value once exhausted
+
+
+def test_no_schedule_uses_flat_scalar_price():
+    params = EVParams(width=5, height=5, number_of_agents=3, fuel_price=2.2)
+    model = EVAdoptionModel(params, seed=42)
+
+    assert model.current_fuel_price == pytest.approx(2.2)
+    model.step()
+    assert model.current_fuel_price == pytest.approx(2.2)
+
+
+def test_electricity_price_schedule_overrides_scalar_and_holds_last_value():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        electricity_price=0.25,
+        electricity_price_schedule=(0.10, 0.20),
+    )
+    model = EVAdoptionModel(params, seed=42)
+
+    assert model.current_electricity_price == pytest.approx(0.10)
+    model.step()
+    assert model.current_electricity_price == pytest.approx(0.20)
+    model.step()
+    assert model.current_electricity_price == pytest.approx(0.20)
+
+
+def test_wright_learning_rate_out_of_range_raises():
+    params = EVParams(width=5, height=5, number_of_agents=3, ev_price_learning_model="wright")
+    model = EVAdoptionModel(params, seed=42)
+
+    for bad_rate in (-0.1, 1.0, 1.5):
+        model.params.ev_wright_learning_rate = bad_rate
+        with pytest.raises(ValueError):
+            model._effective_ev_price()
+
+
+def test_subsidy_schedule_feeds_into_ev_cost():
+    params = EVParams(
+        width=5,
+        height=5,
+        number_of_agents=3,
+        subsidy=0.0,
+        subsidy_schedule=(5000.0,),
+        ev_price_learning_rate=0.0,
+    )
+    model = EVAdoptionModel(params, seed=42)
+    agent = model.agent_list[0]
+
+    agent.consider_ev_adoption()
+
+    assert model.current_subsidy == pytest.approx(5000.0)
+    assert agent.last_ev_tco == pytest.approx(
+        max(params.ev_purchase_price - 5000.0, 0.0)
+        + (
+            agent.annual_mileage * params.ev_kwh_per_km * params.electricity_price
+            + params.ev_maintenance_cost
+        )
+        * params.tco_years
+    )
