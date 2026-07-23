@@ -21,12 +21,12 @@ class EVParams(AffordanceModelParams):
     upper_bound_sd: float = 0.05
 
     initial_charging_coverage: float = 0.0
-    # Calibrated against Portugal's 2010-2024 BEV fleet-share series (see
+    # Calibrated (round 2, 2026-07-23) against Portugal's 2010-2020 BEV
+    # fleet-share series in log space, with 2021-2024 held out (see
     # ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md and
-    # scripts/calibrate_portugal.py); RMSE ~0.003 against the target curve at
-    # the "portugal_2010_2024" scenario's scale (see note below -- the fit is
-    # scale-dependent since charger rollout is not agent-count-scaled).
-    charger_expansion_rate: float = 1.1
+    # scripts/calibrate_portugal.py). The fit is scale-dependent since
+    # charger rollout is not agent-count-scaled; see the scenario note below.
+    charger_expansion_rate: float = 1.86
     charger_expansion_mode: str = "exogenous"
     demand_expansion_gain: float = 4.0
     demand_radius: int = 2
@@ -51,19 +51,22 @@ class EVParams(AffordanceModelParams):
     # against the Portugal target (see calibrate_portugal.py); pass
     # ev_price_learning_model="linear" to recover the old flat-price behaviour.
     ev_price_learning_model: str = "wright"
-    ev_wright_learning_rate: float = 0.23
-    ev_wright_reference_adopters: int = 10
-    # Average annual TCO cannot exceed this share of income (paper's "10% of
-    # income" affordability rule), enforced as a hard adoption gate. The
-    # Portugal calibration search converged close to the original 0.10 guess.
-    income_budget_share: float = 0.10
+    ev_wright_learning_rate: float = 0.18
+    ev_wright_reference_adopters: int = 5
+    # Average annual TCO cannot exceed this share of income, enforced as a
+    # hard adoption gate. Fitted (round 2) with income pinned to the
+    # empirical Eurostat distribution -- landed at 0.108, essentially
+    # confirming the paper's "10% of income" rule; also absorbs the
+    # household/equivalised-income equivalence-scale factor (see
+    # PORTUGAL_CALIBRATION_DATA.md section 5b).
+    income_budget_share: float = 0.108
     discount_rate: float = 0.0
 
-    # Calibrated against Portugal's 2010-2024 BEV fleet-share series (see
+    # Calibrated against Portugal's BEV fleet-share series (see
     # ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md and
     # scripts/calibrate_portugal.py) rather than picked ad hoc.
-    ev_purchase_price: float = 39500.0
-    ice_purchase_price: float = 23000.0
+    ev_purchase_price: float = 44000.0
+    ice_purchase_price: float = 23200.0
     ev_kwh_per_km: float = 0.18
     ice_liters_per_km: float = 0.07
     ev_maintenance_cost: float = 300.0
@@ -73,10 +76,12 @@ class EVParams(AffordanceModelParams):
     initial_ev_share: float = 0.0
     initial_ev_clustered: bool = False
     # Calibrated against the Portugal target curve (see
-    # scripts/calibrate_portugal.py); markedly lower than an uncalibrated
-    # guess since the income-budget gate above already screens out most
-    # low-income agents before the score-based threshold is even checked.
-    adoption_threshold: float = 0.085
+    # scripts/calibrate_portugal.py). Round 2 pushed this to the search
+    # range's lower bound: with the income-budget gate carrying the
+    # heterogeneity, the fitted regime is budget-gate-dominated and the
+    # score threshold is nearly always passed. Treat "which gate binds"
+    # as a structural finding, not a tuning accident.
+    adoption_threshold: float = 0.02
     adoption_rule: str = "deterministic"
     adoption_temperature: float = 0.05
     economic_weight: float = 0.25
@@ -88,18 +93,18 @@ class EVParams(AffordanceModelParams):
     peer_weight: float = 0.15
     range_anxiety_weight: float = 0.10
 
-    # Effective purchasing-power parameters fitted to the Portugal adoption
-    # curve (scripts/calibrate_portugal.py) -- NOT an empirical Portuguese
-    # income distribution (mean household disposable income there is roughly
-    # EUR 20k+). The adoption curve only constrains the product of income
-    # scale and income_budget_share against annual EV cost, so these are
-    # jointly identified with income_budget_share; to use empirical incomes,
-    # pin income_mean/sd to Eurostat/INE data and refit income_budget_share.
-    income_mean: float = 9000.0
-    income_sd: float = 9000.0
+    # EMPIRICAL, not fitted: Eurostat EU-SILC mean equivalised net disposable
+    # income for Portugal (ilc_di03, EUR), 2010-2024 average EUR 11,565;
+    # mean/median ratio ~1.20 and Gini ~33 (ilc_di12) independently both
+    # imply lognormal sigma ~0.60, which mean 11,600 / sd 7,600 reproduces
+    # (median ~EUR 9,700 vs empirical ~9,656). Equivalised income is per
+    # adult-equivalent; the household equivalence-scale factor is absorbed
+    # by income_budget_share. See PORTUGAL_CALIBRATION_DATA.md section 5b.
+    income_mean: float = 11600.0
+    income_sd: float = 7600.0
     # "normal" (backward-compatible truncated normal) or "lognormal"
     # (right-skewed, matching the empirical income distribution; matched to
-    # the same mean/sd). Calibrated to "lognormal".
+    # the same mean/sd). Empirically supported: "lognormal".
     income_distribution: str = "lognormal"
     annual_mileage_mean: float = 12000.0
     annual_mileage_sd: float = 2000.0
@@ -165,11 +170,12 @@ SCENARIOS: dict[str, dict] = {
         "charger_expansion_rate": 6.0,
         "initial_charging_coverage": 0.02,
     },
-    # Reproduces the Portugal 2010-2024 BEV fleet-share calibration
-    # (RMSE ~0.003 against outputs/portugal_ev_stock_share_targets.csv over
-    # 12 seeds at this scenario's number_of_agents; see
-    # ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md and
-    # scripts/calibrate_portugal.py). step 0 = 2010, step 14 = 2024.
+    # Reproduces the Portugal BEV fleet-share calibration, round 2: fitted
+    # on 2010-2020 in log space, 2021-2024 held out. Over 12 seeds at this
+    # scenario's scale: fit-window log-RMSE ~0.36 (raw ~0.0006), hold-out
+    # log-RMSE ~0.29 (raw ~0.006, with a documented undershoot of the
+    # 2021-2024 surge). See ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md
+    # and scripts/calibrate_portugal.py. step 0 = 2010, step 14 = 2024.
     # NOTE: charger_expansion_rate is an absolute chargers-per-step rate, not
     # scaled to number_of_agents, so the fit is tied to number_of_agents=4000
     # on this width x height grid -- changing either without rescaling
@@ -181,5 +187,7 @@ SCENARIOS: dict[str, dict] = {
         "number_of_agents": 4000,
         "max_steps": 14,
         "subsidy_schedule": _PORTUGAL_SUBSIDY_SCHEDULE,
+        # 2010 stock: ~950 BEVs / 5.8M fleet = 0.00016 -> 1 agent of 4000.
+        "initial_ev_share": 0.00016,
     },
 }

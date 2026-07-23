@@ -80,43 +80,76 @@ Still open:
    figures are single-seed runs and some of the reported non-monotonicities
    may be seed noise rather than genuine threshold effects.
 
-## Portugal calibration (2026-07-22)
+## Portugal calibration (round 1: 2026-07-22, round 2: 2026-07-23)
 
-`EVParams` defaults (`income_mean`, `income_sd`, `income_distribution`,
-`ev_purchase_price`, `ice_purchase_price`, `ev_price_learning_model`,
-`ev_wright_learning_rate`, `ev_wright_reference_adopters`,
-`charger_expansion_rate`, `adoption_threshold`) were recalibrated by a random
-+ local-refinement search (`scripts/calibrate_portugal.py`) against the
-Portugal BEV fleet-share target (`outputs/portugal_ev_stock_share_targets.csv`,
-2010–2024). The `"portugal_2010_2024"` scenario (`EVParams.from_scenario`)
-additionally applies the calibrated `subsidy_schedule` and the grid/agent
+**Round 1** recalibrated `EVParams` defaults by a random + local-refinement
+search against the full 2010–2024 Portugal BEV fleet-share target
+(`outputs/portugal_ev_stock_share_targets.csv`), minimizing raw RMSE. It
+achieved RMSE ≈ 0.003 but had two weaknesses: the income distribution was
+treated as a free parameter (and drifted to values with no empirical
+meaning), and fitting the full series left no out-of-sample evidence.
+
+**Round 2** (current defaults) fixed both:
+
+1. **Income is now empirical, not fitted.** `income_mean=11600`,
+   `income_sd=7600`, lognormal — anchored to Eurostat EU-SILC mean
+   equivalised net disposable income for Portugal (`ilc_di03`, 2010–2024
+   average €11,565; mean/median ratio ≈ 1.20 and Gini ≈ 33 (`ilc_di12`)
+   independently both imply lognormal σ ≈ 0.60). Only
+   `income_budget_share` was refitted, absorbing the household
+   equivalence-scale factor — and it landed at **0.108**, essentially
+   confirming the paper's "10% of income" rule against real income data.
+   See `ev_adoption_models/PORTUGAL_CALIBRATION_DATA.md` §5b.
+2. **Hold-out validation with a log-space objective.** The search fits
+   only steps 0–10 (2010–2020), minimizing log-RMSE (raw RMSE is dominated
+   by the late, large-value years; log space weights the early exponential
+   phase properly, with values floored at half an agent's share to absorb
+   integer-agent noise). Steps 11–14 (2021–2024) are never seen by the
+   search.
+
+The `"portugal_2010_2024"` scenario (`EVParams.from_scenario`) additionally
+applies the calibrated `subsidy_schedule`, seeds the 2010 stock
+(`initial_ev_share=0.00016` → 1 agent of 4,000), and pins the grid/agent
 scale the search was run at:
 
 ```bash
 python scripts/run_ev_experiments.py --scenarios portugal_2010_2024 --seeds 1 2 3 4 5 6 7 8 9 10 11 12 --steps 14 --targets outputs/portugal_ev_stock_share_targets.csv
 ```
 
-RMSE ≈ 0.003 (12-seed mean) against target values spanning 0.02%–3.3%. The
-model curve tracks the target's near-zero early years and its final-year
-level closely, but rises faster than the target through the middle of the
-period (a "backlog-then-burst" artifact: agents whose vehicle came up for
-replacement early but couldn't yet afford an EV keep re-evaluating every
-subsequent step, so a wave of them clears the affordability bar together as
-the subsidy ramp and Wright's-law price decline improve conditions, rather
-than diffusing as smoothly as the real market did). This is a documented,
-understood limitation of the one-shot-per-replacement-cycle mechanism, not a
-bug — treat the fit as "right order of magnitude and right endpoints,
-smoother in reality than in the model," not an exact reproduction.
+Round-2 results over 12 seeds:
+
+| Window | log-RMSE | raw RMSE |
+|---|---|---|
+| Fit (2010–2020) | 0.36 | 0.0006 |
+| **Hold-out (2021–2024)** | **0.29** | **0.006** |
+
+Hold-out error is comparable to in-sample error, i.e. no evidence of
+overfitting. The out-of-sample behaviour is a systematic **undershoot of
+the 2021–2024 surge** (2024: model ≈ 2.3% vs observed 3.3%): the model
+carries the pre-2020 growth regime forward and does not reproduce the
+post-2020 acceleration, which in reality was driven by forces outside the
+model (model-availability explosion, corporate fleet electrification, the
+2022 fuel-price spike). Treat this as a structural finding about the
+model's scope, not a fitting failure — and note the per-seed spread at
+this scale is wide (final-share std ≈ 0.016 across seeds), so single-seed
+runs of this scenario are not meaningful.
+
+A further structural note: with income pinned to the empirical
+distribution, the refit pushed `adoption_threshold` to the search floor
+(0.02) — in the calibrated regime the income-budget gate, charging access,
+and the subsidy/price path do the explanatory work, and the score
+threshold barely binds. "Which gate binds" is itself a reportable result.
 
 **Important scale-dependency**: `charger_expansion_rate` is an absolute
 chargers-per-step rate, not scaled to `number_of_agents`, so the fit is tied
 to the `"portugal_2010_2024"` scenario's `number_of_agents=4000` on its
-60×60 grid. Running the same parameters at a different population size (as
-an ad hoc validation during calibration did, at 8,000 agents) changes the
-charger-to-population ratio and materially worsens the fit (RMSE ≈ 0.012 at
-8,000 agents vs ≈ 0.003 at 4,000) — this is expected, not a discrepancy to
-chase, but it means the calibration should not be assumed to hold at an
-arbitrary agent count without rescaling infrastructure parameters.
+60×60 grid. Running the same parameters at a different population size
+changes the charger-to-population ratio and materially worsens the fit
+(observed directly during round 1: raw RMSE ≈ 0.012 at 8,000 agents vs
+≈ 0.003 at 4,000 with identical parameters) — this is expected, not a
+discrepancy to chase, but it means the calibration should not be assumed
+to hold at an arbitrary agent count without rescaling infrastructure
+parameters.
 
 Two existing tests (`test_supply_cap_limits_adoptions_per_step`,
 `test_supply_blocked_agents_adopt_later`) explicitly set

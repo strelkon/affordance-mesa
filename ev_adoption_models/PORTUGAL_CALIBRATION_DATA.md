@@ -64,7 +64,70 @@ Source: [V2Charge](https://v2charge.com/integration-mobi-e-portugal/); [Portugal
 - 2023: >4,450 publicly accessible charging stations.
 - Usage: >487,500 charging sessions in May 2024 alone; >3.276M sessions in the first 7 months of 2024 (+67% YoY) — this rapid usage growth is a proxy for the congestion dynamics EVAM's `charger_capacity`/congestion mechanism is designed to capture, and could motivate a non-infinite `charger_capacity` calibration run.
 
-## 6. Calibration result (2026-07-22)
+## 5b. Household income anchor (Eurostat EU-SILC, retrieved 2026-07-23)
+
+Source: Eurostat `ilc_di03` (mean and median equivalised net disposable
+income, EUR, sex = total, age = total) and `ilc_di12` (Gini coefficient of
+equivalised disposable income), both for Portugal, retrieved via the
+Eurostat API.
+
+| Year | Mean equivalised income (EUR) | Median (EUR) |
+|------|------------------------------:|-------------:|
+| 2010 | 10,540 | 8,678 |
+| 2011 | 10,407 | 8,410 |
+| 2012 | 10,227 | 8,323 |
+| 2013 | 9,899 | 8,177 |
+| 2014 | 9,856 | 8,229 |
+| 2015 | 9,996 | 8,435 |
+| 2016 | 10,562 | 8,782 |
+| 2017 | 10,863 | 9,071 |
+| 2018 | 11,063 | 9,346 |
+| 2019 | 11,786 | 10,023 |
+| 2020 | 12,696 | 10,800 |
+| 2021 | 13,113 | 11,089 |
+| 2022 | 13,148 | 11,014 |
+| 2023 | 14,368 | 11,824 |
+| 2024 | 14,951 | 12,646 |
+
+Period averages: mean **€11,565**, median **€9,656**, mean/median ratio
+≈ 1.20. For a lognormal, mean/median = exp(σ²/2), giving **σ ≈ 0.60** —
+independently cross-checked by the Gini coefficient (31.2–34.5 over
+2014–2024, ≈ 33 mid-period; lognormal Gini = 2Φ(σ/√2) − 1 gives σ ≈ 0.60
+as well). The two derivations agreeing supports the lognormal shape.
+
+Model anchor: `income_mean = 11600`, `income_sd = 7600` with
+`income_distribution = "lognormal"` — this reproduces σ ≈ 0.60 and a
+median of ≈ €9,700 against the empirical ≈ €9,656.
+
+Note: equivalised income is per adult-equivalent, not per household; the
+household equivalence-scale factor (~1.6× for a typical household) is
+deliberately absorbed into the fitted `income_budget_share` rather than
+scaled into income, so the income distribution itself stays exactly as
+published by Eurostat.
+
+## 6b. Calibration result, round 2 (2026-07-23) — current defaults
+
+Round 2 supersedes the round-1 fit below. Changes: (i) `income_mean`/
+`income_sd` pinned to the Eurostat anchor of §5b (no longer searched);
+only `income_budget_share` absorbs the affordability slack, and it fitted
+to **0.108** — essentially the paper's 10% rule, now against empirical
+income; (ii) the objective is **log-RMSE on 2010–2020 only** (floored at
+half an agent's share), with **2021–2024 held out**; (iii) the scenario
+seeds the 2010 stock (`initial_ev_share=0.00016` → 1 agent of 4,000).
+
+Shipped values: `ev_purchase_price=44000`, `ice_purchase_price=23200`,
+`ev_wright_learning_rate=0.18`, `ev_wright_reference_adopters=5`,
+`charger_expansion_rate=1.86`, `adoption_threshold=0.02` (search floor —
+the fitted regime is budget-gate-dominated), `income_budget_share=0.108`.
+
+Results over 12 seeds: fit window (2010–2020) log-RMSE 0.36 / raw RMSE
+0.0006; **hold-out (2021–2024) log-RMSE 0.29 / raw RMSE 0.006** — no
+overfitting signal, with a systematic undershoot of the post-2020 surge
+(2024: model ≈ 2.3% vs observed 3.28%) attributable to drivers outside
+the model (model availability, fleet electrification, 2022 fuel-price
+spike). Full write-up in `VALIDATION.md`.
+
+## 6. Calibration result, round 1 (2026-07-22) — superseded
 
 `EVParams` defaults were recalibrated against the Section 2 stock-share
 series via a random-search + local-refinement fit
